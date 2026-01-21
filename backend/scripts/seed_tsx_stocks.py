@@ -69,8 +69,19 @@ TSX_STOCKS = [
     ("EMA", "EMA.TO"),    # Emera
     ("H", "H.TO"),        # Hydro One
 
-    # Healthcare
+    # Healthcare / Professional Services
     ("WSP", "WSP.TO"),    # WSP Global
+    ("GIB-A", "GIB-A.TO"), # CGI Inc
+
+    # Additional Large Caps
+    ("SAP", "SAP.TO"),    # Saputo Inc
+    ("WCN", "WCN.TO"),    # Waste Connections
+    ("TRI", "TRI.TO"),    # Thomson Reuters
+    ("GFL", "GFL.TO"),    # GFL Environmental
+    ("CCL-B", "CCL-B.TO"), # CCL Industries
+    ("FFH", "FFH.TO"),    # Fairfax Financial
+    ("AQN", "AQN.TO"),    # Algonquin Power
+    ("CTC-A", "CTC-A.TO"), # Canadian Tire
 ]
 
 
