@@ -1,24 +1,51 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import { searchStocks } from '../services/api'
+import type { Stock } from '../types/stock'
 import './Stocks.css'
 
-const stockData = [
-  { ticker: 'UNH', name: 'Unitedhealth Group Inc', earningsCall: 'Jul 21', marketCap: '$2.23B', price: '$56.02', change: '-1.02%', logoClass: 'unh', logoText: 'UHC', selected: false, faded: false },
-  { ticker: 'GEHC', name: 'GE HealthCare Technologies Inc', earningsCall: 'Jul 24', marketCap: '$2.23B', price: '$56.02', change: '-1.02%', logoClass: 'gehc', logoText: 'GE', selected: true, faded: false },
-  { ticker: 'PFE', name: 'Pfizer Inc.', earningsCall: 'Jul 27', marketCap: '$2.23B', price: '$56.02', change: '-1.02%', logoClass: 'pfe', logoText: 'P', selected: false, faded: false },
-  { ticker: 'KALE', name: 'Kale, Inc.', earningsCall: 'Jul 21', marketCap: '$2.23B', price: '$56.02', change: '-1.02%', logoClass: 'kale', logoText: 'KALE', selected: false, faded: false },
-  { ticker: 'GOOGL', name: 'Alphabet Inc', earningsCall: 'Jul 24', marketCap: '$2.23B', price: '$56.02', change: '-1.02%', logoClass: 'googl', logoText: 'G', selected: false, faded: false },
-  { ticker: 'TCEHY', name: 'Tencent Holdings Ltd.', earningsCall: 'Jul 27', marketCap: '$2.23B', price: '$56.02', change: '-1.02%', logoClass: 'tcehy', logoText: 'T', selected: false, faded: false },
-  { ticker: 'XX', name: 'ETF name', earningsCall: 'Jul 27', marketCap: '$2.23B', price: '$56.02', change: '-1.02%', logoClass: 'placeholder', logoText: '', selected: false, faded: true },
-  { ticker: 'XX', name: 'ETF name', earningsCall: 'Jul 27', marketCap: '$2.23B', price: '$56.02', change: '-1.02%', logoClass: 'placeholder', logoText: '', selected: false, faded: true },
-  { ticker: 'XX', name: 'ETF name', earningsCall: 'Jul 27', marketCap: '$2.23B', price: '$56.02', change: '-1.02%', logoClass: 'placeholder', logoText: '', selected: false, faded: true },
-  { ticker: 'XX', name: 'ETF name', earningsCall: 'Jul 27', marketCap: '$2.23B', price: '$56.02', change: '-1.02%', logoClass: 'placeholder', logoText: '', selected: false, faded: true },
-]
+// Color palette for stock logos based on sector
+const sectorColors: Record<string, string> = {
+  Healthcare: '#3b82f6',
+  Technology: '#8b5cf6',
+  Finance: '#10b981',
+  'Consumer Discretionary': '#f59e0b',
+  'Consumer Staples': '#ef4444',
+  Energy: '#f97316',
+  Industrials: '#6366f1',
+  Communication: '#ec4899',
+  Materials: '#14b8a6',
+  Utilities: '#84cc16',
+}
 
-const sampleResults = [
-  { ticker: 'UNH', name: 'UnitedHealth Group Inc', logoClass: 'unh', logoText: 'UHG', starred: false },
-  { ticker: 'GEHC', name: 'GE HealthCare Technologies Inc', logoClass: 'gehc', logoText: 'GE', starred: false },
-  { ticker: 'PFE', name: 'Pfizer Inc.', logoClass: 'pfe', logoText: 'P', starred: true },
-]
+function getLogoColor(sector?: string): string {
+  return sectorColors[sector || ''] || '#6366f1'
+}
+
+function getLogoText(ticker: string): string {
+  return ticker.length <= 2 ? ticker : ticker.slice(0, 2)
+}
+
+function formatDate(dateString?: string): string {
+  if (!dateString) return '-'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function formatMarketCap(cap?: string): string {
+  return cap || '-'
+}
+
+function formatPrice(price?: number): string {
+  if (price === undefined || price === null) return '-'
+  return `$${price.toFixed(2)}`
+}
+
+function formatChange(change?: number): string {
+  if (change === undefined || change === null) return '-'
+  const sign = change >= 0 ? '+' : ''
+  return `${sign}${change.toFixed(2)}%`
+}
 
 function MiniChart({ positive }: { positive: boolean }) {
   const path = positive
@@ -33,16 +60,83 @@ function MiniChart({ positive }: { positive: boolean }) {
 }
 
 function Stocks() {
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const queryFromUrl = searchParams.get('q') || ''
 
-  const showDropdown = searchQuery.length > 0
+  const [searchQuery, setSearchQuery] = useState(queryFromUrl)
+  const [stocks, setStocks] = useState<Stock[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [pageTitle, setPageTitle] = useState(queryFromUrl || 'All Stocks')
+
+  // Navbar search state
+  const [navSearchQuery, setNavSearchQuery] = useState('')
+  const [navResults, setNavResults] = useState<Stock[]>([])
+  const [navIsLoading, setNavIsLoading] = useState(false)
+
+  const fetchStocks = useCallback(async (query: string) => {
+    setIsLoading(true)
+    try {
+      const response = await searchStocks({ query: query || 'all stocks', limit: 50 })
+      if (response.success) {
+        setStocks(response.results)
+        setPageTitle(query || 'All Stocks')
+      } else {
+        console.error('Search error:', response.error)
+        setStocks([])
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+      setStocks([])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  // Fetch stocks when URL query param changes
+  useEffect(() => {
+    fetchStocks(queryFromUrl)
+  }, [queryFromUrl, fetchStocks])
+
+  // Navbar search with debounce
+  useEffect(() => {
+    if (!navSearchQuery.trim()) {
+      setNavResults([])
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setNavIsLoading(true)
+      try {
+        const response = await searchStocks({ query: navSearchQuery, limit: 5 })
+        if (response.success) {
+          setNavResults(response.results)
+        }
+      } catch (error) {
+        console.error('Navbar search error:', error)
+      } finally {
+        setNavIsLoading(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [navSearchQuery])
+
+  const handleNavKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && navSearchQuery.trim()) {
+      setSearchParams({ q: navSearchQuery })
+      setNavSearchQuery('')
+    }
+  }
+
+  const showNavDropdown = navSearchQuery.length > 0
 
   return (
     <div className="stocks-page">
       {/* Header */}
       <header className="header">
         <div className="header-left">
-          <div className="logo">W</div>
+          <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>W</div>
           <nav className="nav-links">
             <a href="/" className="nav-link">Home</a>
             <a href="#" className="nav-link">Move</a>
@@ -53,44 +147,70 @@ function Stocks() {
         </div>
         <div className="header-right">
           <div className="navbar-search-container">
-            <div className={`search-bar ${showDropdown ? 'has-results' : ''}`}>
+            <div className={`search-bar ${showNavDropdown ? 'has-results' : ''}`}>
               <span className="search-icon">&#x1F50D;</span>
               <input
                 type="text"
                 className="search-input"
-                placeholder="Search name or symbol"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search stocks..."
+                value={navSearchQuery}
+                onChange={(e) => setNavSearchQuery(e.target.value)}
+                onKeyDown={handleNavKeyDown}
               />
-              {!showDropdown && <span className="search-shortcut">/</span>}
+              {!showNavDropdown && <span className="search-shortcut">/</span>}
             </div>
 
-            {showDropdown && (
+            {showNavDropdown && (
               <div className="navbar-search-dropdown">
                 <div className="dropdown-section">
-                  <span className="dropdown-label">Results</span>
+                  <span className="dropdown-label">
+                    {navIsLoading ? 'Searching...' : `Results (${navResults.length})`}
+                  </span>
                   <div className="dropdown-results">
-                    {sampleResults.map((result, index) => (
-                      <div key={index} className="dropdown-result-item">
+                    {navResults.map((stock, index) => (
+                      <div
+                        key={index}
+                        className="dropdown-result-item"
+                        onClick={() => {
+                          setSearchParams({ q: stock.ticker })
+                          setNavSearchQuery('')
+                        }}
+                      >
                         <div className="result-left">
-                          <div className={`result-logo ${result.logoClass}`}>
-                            {result.logoText}
+                          <div
+                            className="result-logo"
+                            style={{ backgroundColor: getLogoColor(stock.sector) }}
+                          >
+                            {getLogoText(stock.ticker)}
                           </div>
-                          <span className="result-ticker">{result.ticker}</span>
-                          <span className="result-name">{result.name}</span>
+                          <span className="result-ticker">{stock.ticker}</span>
+                          <span className="result-name">{stock.stock_name}</span>
                         </div>
-                        <span className={`result-star ${result.starred ? 'starred' : ''}`}>
-                          {result.starred ? '★' : '☆'}
-                        </span>
+                        <span className="result-star">☆</span>
                       </div>
                     ))}
+                    {!navIsLoading && navResults.length === 0 && (
+                      <div className="dropdown-result-item">
+                        <span className="result-name">No results found</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="dropdown-footer">
-                  <a href="/stocks" className="view-all-link">
-                    View all results <span className="arrow">→</span>
-                  </a>
-                </div>
+                {navResults.length > 0 && (
+                  <div className="dropdown-footer">
+                    <a
+                      href="#"
+                      className="view-all-link"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setSearchParams({ q: navSearchQuery })
+                        setNavSearchQuery('')
+                      }}
+                    >
+                      View all results <span className="arrow">→</span>
+                    </a>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -101,8 +221,10 @@ function Stocks() {
 
       {/* Main Content */}
       <main className="main-content">
-        <h1 className="page-title">Healthcare stocks with earnings calls in the next week</h1>
-        <p className="results-count">24 results</p>
+        <h1 className="page-title">{pageTitle}</h1>
+        <p className="results-count">
+          {isLoading ? 'Loading...' : `${stocks.length} results`}
+        </p>
 
         <table className="stock-table">
           <thead className="table-header">
@@ -116,31 +238,43 @@ function Stocks() {
             </tr>
           </thead>
           <tbody>
-            {stockData.map((stock, index) => (
-              <tr
-                key={index}
-                className={`stock-row ${stock.selected ? 'selected' : ''} ${stock.faded ? 'faded' : ''}`}
-              >
-                <td>
-                  <div className="position-cell">
-                    <div className={`stock-logo ${stock.logoClass}`}>
-                      {stock.logoText}
+            {stocks.map((stock, index) => {
+              const isPositive = (stock.day_change_percent || 0) >= 0
+
+              return (
+                <tr key={stock.ticker} className="stock-row">
+                  <td>
+                    <div className="position-cell">
+                      <div
+                        className="stock-logo"
+                        style={{ backgroundColor: getLogoColor(stock.sector) }}
+                      >
+                        {getLogoText(stock.ticker)}
+                      </div>
+                      <span className="ticker">{stock.ticker}</span>
+                      <span className="company-name">{stock.stock_name}</span>
                     </div>
-                    <span className="ticker">{stock.ticker}</span>
-                    <span className="company-name">{stock.name}</span>
-                  </div>
-                </td>
-                <td>{stock.earningsCall}</td>
-                <td>{stock.marketCap}</td>
-                <td>{stock.price}</td>
-                <td className="change-negative">{stock.change}</td>
-                <td className="mini-chart">
-                  <MiniChart positive={index % 2 === 0} />
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td>{formatDate(stock.earnings_call_date)}</td>
+                  <td>{formatMarketCap(stock.market_cap)}</td>
+                  <td>{formatPrice(stock.current_price)}</td>
+                  <td className={isPositive ? 'change-positive' : 'change-negative'}>
+                    {formatChange(stock.day_change_percent)}
+                  </td>
+                  <td className="mini-chart">
+                    <MiniChart positive={isPositive} />
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
+
+        {!isLoading && stocks.length === 0 && (
+          <p style={{ color: '#888', textAlign: 'center', marginTop: '40px' }}>
+            No stocks found. Try a different search query.
+          </p>
+        )}
       </main>
     </div>
   )
