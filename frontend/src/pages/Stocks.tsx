@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import './Stocks.css'
 
 const stockData = [
@@ -13,6 +14,12 @@ const stockData = [
   { ticker: 'XX', name: 'ETF name', earningsCall: 'Jul 27', marketCap: '$2.23B', price: '$56.02', change: '-1.02%', logoClass: 'placeholder', logoText: '', selected: false, faded: true },
 ]
 
+const sampleResults = [
+  { ticker: 'UNH', name: 'UnitedHealth Group Inc', logoClass: 'unh', logoText: 'UHG', starred: false },
+  { ticker: 'GEHC', name: 'GE HealthCare Technologies Inc', logoClass: 'gehc', logoText: 'GE', starred: false },
+  { ticker: 'PFE', name: 'Pfizer Inc.', logoClass: 'pfe', logoText: 'P', starred: true },
+]
+
 function MiniChart({ positive }: { positive: boolean }) {
   const path = positive
     ? "M0,18 L10,14 L20,16 L30,10 L40,12 L50,6 L60,8"
@@ -26,6 +33,10 @@ function MiniChart({ positive }: { positive: boolean }) {
 }
 
 function Stocks() {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const showDropdown = searchQuery.length > 0
+
   return (
     <div className="stocks-page">
       {/* Header */}
@@ -41,15 +52,47 @@ function Stocks() {
           </nav>
         </div>
         <div className="header-right">
-          <div className="search-bar">
-            <span className="search-icon">&#x1F50D;</span>
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search name or symbol"
-              readOnly
-            />
-            <span className="search-shortcut">/</span>
+          <div className="navbar-search-container">
+            <div className={`search-bar ${showDropdown ? 'has-results' : ''}`}>
+              <span className="search-icon">&#x1F50D;</span>
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search name or symbol"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {!showDropdown && <span className="search-shortcut">/</span>}
+            </div>
+
+            {showDropdown && (
+              <div className="navbar-search-dropdown">
+                <div className="dropdown-section">
+                  <span className="dropdown-label">Results</span>
+                  <div className="dropdown-results">
+                    {sampleResults.map((result, index) => (
+                      <div key={index} className="dropdown-result-item">
+                        <div className="result-left">
+                          <div className={`result-logo ${result.logoClass}`}>
+                            {result.logoText}
+                          </div>
+                          <span className="result-ticker">{result.ticker}</span>
+                          <span className="result-name">{result.name}</span>
+                        </div>
+                        <span className={`result-star ${result.starred ? 'starred' : ''}`}>
+                          {result.starred ? '★' : '☆'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="dropdown-footer">
+                  <a href="/stocks" className="view-all-link">
+                    View all results <span className="arrow">→</span>
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
           <span className="header-icon">&#128197;</span>
           <span className="header-icon">&#128100;</span>

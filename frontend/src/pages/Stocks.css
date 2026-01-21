@@ -269,3 +269,139 @@
   stroke-width: 1.5;
   fill: none;
 }
+
+/* Navbar Search Dropdown */
+.navbar-search-container {
+  position: relative;
+}
+
+.search-bar.has-results {
+  border-radius: 8px 8px 0 0;
+  border: 1px solid #3a3a3a;
+  border-bottom: none;
+}
+
+.navbar-search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #1a1a1a;
+  border: 1px solid #3a3a3a;
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  padding: 12px 0 16px 0;
+  z-index: 1000;
+  min-width: 350px;
+}
+
+.dropdown-section {
+  padding: 0 16px;
+}
+
+.dropdown-label {
+  color: #666666;
+  font-size: 12px;
+  font-weight: 400;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.dropdown-results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dropdown-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dropdown-result-item:hover {
+  background-color: #252525;
+  margin: 0 -16px;
+  padding: 10px 16px;
+}
+
+.result-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.result-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.result-logo.unh {
+  background-color: #3b82f6;
+}
+
+.result-logo.gehc {
+  background-color: #8b5cf6;
+}
+
+.result-logo.pfe {
+  background-color: #1e40af;
+}
+
+.result-ticker {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.result-name {
+  color: #666666;
+  font-size: 14px;
+}
+
+.result-star {
+  color: #444444;
+  font-size: 18px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.result-star:hover {
+  color: #888888;
+}
+
+.result-star.starred {
+  color: #ffffff;
+}
+
+.dropdown-footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  text-align: center;
+}
+
+.view-all-link {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.view-all-link:hover {
+  opacity: 0.8;
+}
+
+.view-all-link .arrow {
+  margin-left: 4px;
+}
