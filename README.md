@@ -1,1 +1,1 @@
-# sealthwimple-ai-command-center
+# wealthsimple-ai-command-center
