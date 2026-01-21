@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getStockDetail, getStockChart } from '../services/api'
 import type { Stock, ChartResponse } from '../types/stock'
@@ -15,6 +15,14 @@ const PERIOD_MAP: Record<Period, string> = {
   '3M': '3M',
   '1Y': '1Y',
   '5Y': '5Y',
+}
+
+interface HoverData {
+  index: number
+  price: number
+  timestamp: string
+  x: number
+  y: number
 }
 
 // Color palette for stock logos based on sector
@@ -70,15 +78,37 @@ function getCurrency(exchange?: string): string {
   return 'USD'
 }
 
+function formatTimestamp(timestamp: string, period: Period): string {
+  const date = new Date(timestamp)
+  if (period === '1D' || period === '1W') {
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZoneName: 'short'
+    }).replace(',', '')
+  }
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+}
+
 function StockDetail() {
   const { ticker } = useParams<{ ticker: string }>()
   const navigate = useNavigate()
+  const chartRef = useRef<HTMLDivElement>(null)
 
   const [stock, setStock] = useState<Stock | null>(null)
   const [chartData, setChartData] = useState<ChartResponse | null>(null)
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('1D')
   const [isLoading, setIsLoading] = useState(true)
   const [chartLoading, setChartLoading] = useState(false)
+  const [hoverData, setHoverData] = useState<HoverData | null>(null)
 
   // Fetch stock details
   useEffect(() => {
@@ -108,10 +138,10 @@ function StockDetail() {
     fetchChart()
   }, [ticker, selectedPeriod])
 
-  // Generate SVG path for chart
-  const generateChartPath = (): { path: string; isPositive: boolean; openY: number } => {
+  // Generate SVG path and points for chart
+  const generateChartData = useCallback(() => {
     if (!chartData?.data_points || chartData.data_points.length < 2) {
-      return { path: '', isPositive: true, openY: 50 }
+      return { path: '', isPositive: true, openY: 50, points: [], min: 0, max: 0, range: 1 }
     }
 
     const prices = chartData.data_points.map(p => p.price)
@@ -126,17 +156,79 @@ function StockDetail() {
     const points = prices.map((price, i) => {
       const x = (i / (prices.length - 1)) * width
       const y = padding + ((max - price) / range) * (height - padding * 2)
-      return { x, y }
+      return { x, y, price }
     })
 
     const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ')
     const isPositive = prices[prices.length - 1] >= prices[0]
     const openY = padding + ((max - prices[0]) / range) * (height - padding * 2)
 
-    return { path: pathD, isPositive, openY }
-  }
+    return { path: pathD, isPositive, openY, points, min, max, range }
+  }, [chartData])
 
-  const { path: chartPath, isPositive, openY } = generateChartPath()
+  const { path: chartPath, isPositive, openY, points: chartPoints } = generateChartData()
+
+  // Handle mouse move on chart
+  const handleChartMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!chartRef.current || !chartData?.data_points || chartData.data_points.length < 2) return
+
+    const rect = chartRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const relativeX = x / rect.width
+
+    // Find the closest data point
+    const index = Math.min(
+      Math.max(0, Math.round(relativeX * (chartData.data_points.length - 1))),
+      chartData.data_points.length - 1
+    )
+
+    const dataPoint = chartData.data_points[index]
+    const point = chartPoints[index]
+
+    if (dataPoint && point) {
+      setHoverData({
+        index,
+        price: dataPoint.price,
+        timestamp: dataPoint.timestamp,
+        x: point.x,
+        y: point.y
+      })
+    }
+  }, [chartData, chartPoints])
+
+  const handleChartMouseLeave = useCallback(() => {
+    setHoverData(null)
+  }, [])
+
+  // Calculate displayed price and change (use hover data if available)
+  const displayPrice = hoverData?.price ?? stock?.current_price
+  const openPrice = chartData?.data_points?.[0]?.price ?? stock?.closing_price ?? 0
+  const displayChangeAmount = displayPrice && openPrice ? displayPrice - openPrice : stock?.day_change_amount
+  const displayChangePercent = displayPrice && openPrice && openPrice !== 0
+    ? ((displayPrice - openPrice) / openPrice) * 100
+    : stock?.day_change_percent
+
+  // Generate paths for before/after cursor
+  const generateSplitPaths = useCallback(() => {
+    if (!hoverData || chartPoints.length < 2) {
+      return { beforePath: chartPath, afterPath: '' }
+    }
+
+    const beforePoints = chartPoints.slice(0, hoverData.index + 1)
+    const afterPoints = chartPoints.slice(hoverData.index)
+
+    const beforePath = beforePoints.map((p, i) =>
+      `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`
+    ).join(' ')
+
+    const afterPath = afterPoints.map((p, i) =>
+      `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`
+    ).join(' ')
+
+    return { beforePath, afterPath }
+  }, [hoverData, chartPoints, chartPath])
+
+  const { beforePath, afterPath } = generateSplitPaths()
 
   if (isLoading) {
     return (
@@ -154,7 +246,7 @@ function StockDetail() {
     )
   }
 
-  const changeIsPositive = (stock.day_change_percent || 0) >= 0
+  const changeIsPositive = (displayChangePercent || 0) >= 0
 
   return (
     <div className="stock-detail-page">
@@ -213,38 +305,103 @@ function StockDetail() {
         {/* Price Section */}
         <div className="price-section">
           <div className="current-price-row">
-            <span className="current-price">{formatPrice(stock.current_price)}</span>
+            <span className="current-price">{formatPrice(displayPrice)}</span>
             <span className="currency">{getCurrency(stock.exchange)}</span>
           </div>
           <div className={`price-change ${changeIsPositive ? 'positive' : 'negative'}`}>
             {!changeIsPositive && '-'}
-            {formatChange(Math.abs(stock.day_change_amount || 0), stock.day_change_percent)}
-            <span className="change-label"> at close</span>
+            {formatChange(Math.abs(displayChangeAmount || 0), displayChangePercent)}
+            {!hoverData && <span className="change-label"> at close</span>}
           </div>
         </div>
 
         {/* Chart Section */}
         <div className="chart-section">
-          <div className="chart-container">
+          <div
+            className="chart-container"
+            ref={chartRef}
+            onMouseMove={handleChartMouseMove}
+            onMouseLeave={handleChartMouseLeave}
+          >
             {chartLoading ? (
               <div className="chart-loading">Loading chart...</div>
             ) : (
-              <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="price-chart">
-                {/* Opening price reference line */}
-                <line
-                  x1="0"
-                  y1={openY}
-                  x2="100"
-                  y2={openY}
-                  className="reference-line"
-                />
-                {/* Price line */}
-                <path
-                  d={chartPath}
-                  className={`chart-line ${isPositive ? 'positive' : 'negative'}`}
-                  fill="none"
-                />
-              </svg>
+              <>
+                {/* Timestamp label */}
+                {hoverData && (
+                  <div
+                    className="hover-timestamp"
+                    style={{ left: `${hoverData.x}%` }}
+                  >
+                    {formatTimestamp(hoverData.timestamp, selectedPeriod)}
+                  </div>
+                )}
+
+                {/* Cursor dot - rendered as HTML for proper circle shape */}
+                {hoverData && (
+                  <div
+                    className={`cursor-dot-html ${isPositive ? 'positive' : 'negative'}`}
+                    style={{
+                      left: `${hoverData.x}%`,
+                      top: `${hoverData.y}%`
+                    }}
+                  />
+                )}
+
+                {/* Price label on right - only shows on hover, positioned at baseline */}
+                {hoverData && (
+                  <div
+                    className="price-label"
+                    style={{ top: `${openY}%` }}
+                  >
+                    {formatPrice(stock.closing_price)}
+                  </div>
+                )}
+
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="price-chart">
+                  {/* Opening price reference line */}
+                  <line
+                    x1="0"
+                    y1={openY}
+                    x2="100"
+                    y2={openY}
+                    className="reference-line"
+                  />
+
+                  {/* Price line - split into before/after cursor when hovering */}
+                  {hoverData ? (
+                    <>
+                      <path
+                        d={beforePath}
+                        className={`chart-line ${isPositive ? 'positive' : 'negative'}`}
+                        fill="none"
+                      />
+                      <path
+                        d={afterPath}
+                        className={`chart-line faded ${isPositive ? 'positive' : 'negative'}`}
+                        fill="none"
+                      />
+                    </>
+                  ) : (
+                    <path
+                      d={chartPath}
+                      className={`chart-line ${isPositive ? 'positive' : 'negative'}`}
+                      fill="none"
+                    />
+                  )}
+
+                  {/* Cursor line */}
+                  {hoverData && (
+                    <line
+                      x1={hoverData.x}
+                      y1="0"
+                      x2={hoverData.x}
+                      y2="100"
+                      className="cursor-line"
+                    />
+                  )}
+                </svg>
+              </>
             )}
           </div>
 

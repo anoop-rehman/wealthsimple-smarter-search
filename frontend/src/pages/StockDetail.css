@@ -209,6 +209,7 @@
   height: 300px;
   margin-bottom: 24px;
   position: relative;
+  cursor: crosshair;
 }
 
 .chart-loading {
@@ -225,14 +226,16 @@
 }
 
 .reference-line {
-  stroke: #444;
-  stroke-width: 0.3;
-  stroke-dasharray: 2, 2;
+  stroke: #555;
+  stroke-width: 0.2;
+  stroke-dasharray: 3, 3;
+  vector-effect: non-scaling-stroke;
 }
 
 .chart-line {
-  stroke-width: 0.5;
+  stroke-width: 2;
   vector-effect: non-scaling-stroke;
+  fill: none;
 }
 
 .chart-line.positive {
@@ -240,7 +243,60 @@
 }
 
 .chart-line.negative {
-  stroke: #ef4444;
+  stroke: #e07862;
+}
+
+.chart-line.faded {
+  opacity: 0.35;
+}
+
+/* Cursor elements */
+.cursor-line {
+  stroke: #888;
+  stroke-width: 0.15;
+  vector-effect: non-scaling-stroke;
+}
+
+/* HTML cursor dot - rendered outside SVG for proper circle shape */
+.cursor-dot-html {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.cursor-dot-html.positive {
+  background-color: #10b981;
+}
+
+.cursor-dot-html.negative {
+  background-color: #e07862;
+}
+
+/* Hover timestamp label */
+.hover-timestamp {
+  position: absolute;
+  top: 8px;
+  transform: translateX(-50%);
+  color: #999;
+  font-size: 13px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Price label on right - appears on baseline during hover */
+.price-label {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  background-color: #3a3a3a;
+  color: #999;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  pointer-events: none;
 }
 
 /* Period Selector */
