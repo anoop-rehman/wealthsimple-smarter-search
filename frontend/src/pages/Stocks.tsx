@@ -36,15 +36,19 @@ function formatMarketCap(cap?: string): string {
   return cap || '-'
 }
 
-function formatPrice(price?: number): string {
+function formatPrice(price?: number | string): string {
   if (price === undefined || price === null) return '-'
-  return `$${price.toFixed(2)}`
+  const num = typeof price === 'string' ? parseFloat(price) : price
+  if (isNaN(num)) return '-'
+  return `$${num.toFixed(2)}`
 }
 
-function formatChange(change?: number): string {
+function formatChange(change?: number | string): string {
   if (change === undefined || change === null) return '-'
-  const sign = change >= 0 ? '+' : ''
-  return `${sign}${change.toFixed(2)}%`
+  const num = typeof change === 'string' ? parseFloat(change) : change
+  if (isNaN(num)) return '-'
+  const sign = num >= 0 ? '+' : ''
+  return `${sign}${num.toFixed(2)}%`
 }
 
 function MiniChart({ positive }: { positive: boolean }) {
@@ -239,7 +243,10 @@ function Stocks() {
           </thead>
           <tbody>
             {stocks.map((stock, index) => {
-              const isPositive = (stock.day_change_percent || 0) >= 0
+              const changePercent = typeof stock.day_change_percent === 'string'
+                ? parseFloat(stock.day_change_percent)
+                : (stock.day_change_percent || 0)
+              const isPositive = changePercent >= 0
 
               return (
                 <tr key={stock.ticker} className="stock-row">
