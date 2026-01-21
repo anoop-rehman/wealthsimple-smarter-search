@@ -116,3 +116,135 @@
   border-radius: 6px;
   font-size: 14px;
 }
+
+/* Search Container */
+.search-container {
+  width: 600px;
+}
+
+.home-search-bar.has-results {
+  border-radius: 12px 12px 0 0;
+  border: 1px solid #3a3a3a;
+  border-bottom: none;
+}
+
+/* Search Dropdown */
+.search-dropdown {
+  background-color: #1a1a1a;
+  border: 1px solid #3a3a3a;
+  border-top: none;
+  border-radius: 0 0 24px 24px;
+  padding: 16px 0 24px 0;
+}
+
+.dropdown-section {
+  padding: 0 24px;
+}
+
+.dropdown-label {
+  color: #666666;
+  font-size: 13px;
+  font-weight: 400;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.dropdown-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dropdown-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dropdown-result-item:hover {
+  background-color: #252525;
+  margin: 0 -24px;
+  padding: 12px 24px;
+}
+
+.result-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.result-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.result-logo.unh {
+  background-color: #3b82f6;
+}
+
+.result-logo.gehc {
+  background-color: #8b5cf6;
+}
+
+.result-logo.pfe {
+  background-color: #1e40af;
+}
+
+.result-ticker {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.result-name {
+  color: #666666;
+  font-size: 15px;
+}
+
+.result-star {
+  color: #444444;
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.result-star:hover {
+  color: #888888;
+}
+
+.result-star.starred {
+  color: #ffffff;
+}
+
+/* Dropdown Footer */
+.dropdown-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  text-align: center;
+}
+
+.view-all-link {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.view-all-link:hover {
+  opacity: 0.8;
+}
+
+.view-all-link .arrow {
+  margin-left: 4px;
+}
