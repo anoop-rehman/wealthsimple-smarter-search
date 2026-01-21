@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { searchStocks } from '../services/api'
+import { searchStocks, getChartsBatch } from '../services/api'
 import type { Stock } from '../types/stock'
 import './Stocks.css'
+
+type ChartData = Record<string, { prices: number[], timestamps: string[] } | null>
 
 // Color palette for stock logos based on sector
 const sectorColors: Record<string, string> = {
@@ -51,10 +53,38 @@ function formatChange(change?: number | string): string {
   return `${sign}${num.toFixed(2)}%`
 }
 
-function MiniChart({ positive }: { positive: boolean }) {
-  const path = positive
+function MiniChart({ prices, positive }: { prices?: number[], positive: boolean }) {
+  // Generate SVG path from price data
+  const generatePath = (prices: number[]): string => {
+    if (!prices || prices.length < 2) return ''
+
+    const width = 60
+    const height = 24
+    const padding = 2
+
+    const min = Math.min(...prices)
+    const max = Math.max(...prices)
+    const range = max - min || 1
+
+    // Sample ~20 points for smooth mini chart
+    const step = Math.max(1, Math.floor(prices.length / 20))
+    const sampledPrices = prices.filter((_, i) => i % step === 0)
+
+    const points = sampledPrices.map((price, i) => {
+      const x = (i / (sampledPrices.length - 1)) * width
+      const y = padding + ((max - price) / range) * (height - padding * 2)
+      return `${x.toFixed(1)},${y.toFixed(1)}`
+    })
+
+    return `M${points.join(' L')}`
+  }
+
+  // Fallback path if no data
+  const fallbackPath = positive
     ? "M0,18 L10,14 L20,16 L30,10 L40,12 L50,6 L60,8"
     : "M0,6 L10,10 L20,8 L30,14 L40,12 L50,18 L60,16"
+
+  const path = prices && prices.length > 1 ? generatePath(prices) : fallbackPath
 
   return (
     <svg viewBox="0 0 60 24">
@@ -70,7 +100,9 @@ function Stocks() {
 
   const [searchQuery, setSearchQuery] = useState(queryFromUrl)
   const [stocks, setStocks] = useState<Stock[]>([])
+  const [chartData, setChartData] = useState<ChartData>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [chartsLoading, setChartsLoading] = useState(false)
   const [pageTitle, setPageTitle] = useState(queryFromUrl || 'All Stocks')
 
   // Navbar search state
@@ -101,6 +133,31 @@ function Stocks() {
   useEffect(() => {
     fetchStocks(queryFromUrl)
   }, [queryFromUrl, fetchStocks])
+
+  // Fetch chart data when stocks change
+  useEffect(() => {
+    if (stocks.length === 0) {
+      setChartData({})
+      return
+    }
+
+    const fetchCharts = async () => {
+      setChartsLoading(true)
+      try {
+        const tickers = stocks.map(s => s.ticker)
+        const response = await getChartsBatch(tickers, '1D')
+        if (response?.charts) {
+          setChartData(response.charts)
+        }
+      } catch (error) {
+        console.error('Error fetching charts:', error)
+      } finally {
+        setChartsLoading(false)
+      }
+    }
+
+    fetchCharts()
+  }, [stocks])
 
   // Navbar search with debounce
   useEffect(() => {
@@ -269,7 +326,10 @@ function Stocks() {
                     {formatChange(stock.day_change_percent)}
                   </td>
                   <td className="mini-chart">
-                    <MiniChart positive={isPositive} />
+                    <MiniChart
+                      prices={chartData[stock.ticker]?.prices}
+                      positive={isPositive}
+                    />
                   </td>
                 </tr>
               )

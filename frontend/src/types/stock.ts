@@ -45,3 +45,26 @@ export interface SearchRequest {
   query: string
   limit?: number
 }
+
+// Chart types
+export interface ChartDataPoint {
+  timestamp: string
+  price: number
+  open: number
+  high: number
+  low: number
+  volume: number
+}
+
+export interface ChartResponse {
+  ticker: string
+  period: string
+  interval: string
+  data_points: ChartDataPoint[]
+  count: number
+}
+
+export interface ChartBatchResponse {
+  period: string
+  charts: Record<string, { prices: number[], timestamps: string[] } | null>
+}

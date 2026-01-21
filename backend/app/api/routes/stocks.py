@@ -1,15 +1,16 @@
 """Stock management API routes."""
 
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from app.database import get_db
 from app.services.stock_update_service import (
     update_all_stocks,
     update_stock_from_yahoo,
     add_stock_from_yahoo
 )
+from app.services.chart_service import fetch_chart_data, fetch_charts_batch
 from app.models.stock import Stock
 
 router = APIRouter(tags=["stocks"])
@@ -114,4 +115,96 @@ def list_stocks(
             }
             for s in stocks
         ]
+    }
+
+
+# ============ Chart Endpoints ============
+
+class ChartBatchRequest(BaseModel):
+    tickers: List[str]
+    period: str = "1D"
+
+
+@router.get("/stocks/{ticker}/chart")
+def get_stock_chart(
+    ticker: str,
+    period: str = "1D",
+    db: Session = Depends(get_db)
+):
+    """
+    Get chart data for a single stock.
+
+    Periods: 1D, 5D, 1M, 3M, 6M, 1Y, 5Y
+    """
+    chart_data = fetch_chart_data(db, ticker, period)
+
+    if not chart_data:
+        raise HTTPException(status_code=404, detail=f"Chart data not found for {ticker}")
+
+    return chart_data
+
+
+@router.post("/stocks/charts")
+def get_charts_batch(
+    request: ChartBatchRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Get chart data for multiple stocks (batch request).
+
+    Use this for efficiently fetching mini-chart data for list views.
+    Returns simplified data (just prices and timestamps) for each ticker.
+    """
+    if len(request.tickers) > 50:
+        raise HTTPException(status_code=400, detail="Maximum 50 tickers per request")
+
+    charts = fetch_charts_batch(db, request.tickers, request.period)
+
+    return {
+        "period": request.period,
+        "charts": charts
+    }
+
+
+@router.get("/stocks/{ticker}")
+def get_stock_detail(
+    ticker: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get full details for a single stock.
+    """
+    stock = db.query(Stock).filter(Stock.ticker == ticker.upper()).first()
+
+    if not stock:
+        raise HTTPException(status_code=404, detail=f"Stock {ticker} not found")
+
+    return {
+        "ticker": stock.ticker,
+        "stock_name": stock.stock_name,
+        "description": stock.description,
+        "sector": stock.sector,
+        "industry": stock.industry,
+        "exchange": stock.exchange,
+        "current_price": float(stock.current_price) if stock.current_price else None,
+        "closing_price": float(stock.closing_price) if stock.closing_price else None,
+        "day_change_amount": float(stock.day_change_amount) if stock.day_change_amount else None,
+        "day_change_percent": float(stock.day_change_percent) if stock.day_change_percent else None,
+        "market_open": float(stock.market_open) if stock.market_open else None,
+        "market_high": float(stock.market_high) if stock.market_high else None,
+        "market_low": float(stock.market_low) if stock.market_low else None,
+        "week_52_high": float(stock.week_52_high) if stock.week_52_high else None,
+        "week_52_low": float(stock.week_52_low) if stock.week_52_low else None,
+        "bid_price": float(stock.bid_price) if stock.bid_price else None,
+        "bid_size": stock.bid_size,
+        "ask_price": float(stock.ask_price) if stock.ask_price else None,
+        "ask_size": stock.ask_size,
+        "volume": stock.volume,
+        "average_volume": stock.average_volume,
+        "market_cap": stock.market_cap,
+        "market_cap_numeric": stock.market_cap_numeric,
+        "pe_ratio": float(stock.pe_ratio) if stock.pe_ratio else None,
+        "dividend_yield_12month": stock.dividend_yield_12month,
+        "ex_dividend_date": stock.ex_dividend_date.isoformat() if stock.ex_dividend_date else None,
+        "earnings_call_date": stock.earnings_call_date.isoformat() if stock.earnings_call_date else None,
     }
