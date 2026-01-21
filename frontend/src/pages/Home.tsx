@@ -139,7 +139,7 @@ function Home() {
                     <div
                       key={index}
                       className="dropdown-result-item"
-                      onClick={() => navigate(`/stocks?q=${encodeURIComponent(stock.ticker)}`)}
+                      onClick={() => navigate(`/stock/${stock.ticker}`)}
                     >
                       <div className="result-left">
                         <div

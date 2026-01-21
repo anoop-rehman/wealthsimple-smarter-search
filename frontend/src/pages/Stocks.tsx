@@ -233,7 +233,7 @@ function Stocks() {
                         key={index}
                         className="dropdown-result-item"
                         onClick={() => {
-                          setSearchParams({ q: stock.ticker })
+                          navigate(`/stock/${stock.ticker}`)
                           setNavSearchQuery('')
                         }}
                       >
@@ -306,7 +306,12 @@ function Stocks() {
               const isPositive = changePercent >= 0
 
               return (
-                <tr key={stock.ticker} className="stock-row">
+                <tr
+                  key={stock.ticker}
+                  className="stock-row"
+                  onClick={() => navigate(`/stock/${stock.ticker}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <td>
                     <div className="position-cell">
                       <div
