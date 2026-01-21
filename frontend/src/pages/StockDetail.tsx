@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getStockDetail, getStockChart } from '../services/api'
 import type { Stock, ChartResponse } from '../types/stock'
@@ -124,8 +124,6 @@ function StockDetail() {
   const [hoverData, setHoverData] = useState<HoverData | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState<HoverData | null>(null)
-  const [dragSelection, setDragSelection] = useState<DragSelection | null>(null)
-  const justFinishedDrag = useRef(false)
 
   // Fetch stock details
   useEffect(() => {
@@ -240,8 +238,6 @@ function StockDetail() {
     const point = chartPoints[index]
 
     if (dataPoint && point) {
-      // Clear any existing selection and start new drag
-      setDragSelection(null)
       setIsDragging(true)
       setDragStart({
         index,
@@ -253,75 +249,59 @@ function StockDetail() {
     }
   }, [chartData, chartPoints])
 
-  // Handle mouse up to end drag selection
-  const handleChartMouseUp = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !dragStart || !chartRef.current || !chartData?.data_points) {
+  // Global mouseup listener - clear drag state on release (selection disappears)
+  useEffect(() => {
+    if (!isDragging) return
+
+    const handleGlobalMouseUp = () => {
       setIsDragging(false)
       setDragStart(null)
-      return
     }
 
-    // Calculate end position from mouse event
-    const rect = chartRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const relativeX = x / rect.width
-    const endIndex = Math.min(
-      Math.max(0, Math.round(relativeX * (chartData.data_points.length - 1))),
-      chartData.data_points.length - 1
-    )
+    document.addEventListener('mouseup', handleGlobalMouseUp)
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp)
+    }
+  }, [isDragging])
 
-    // Only create selection if dragged at least a few points
-    if (Math.abs(dragStart.index - endIndex) >= 2) {
-      const startIdx = Math.min(dragStart.index, endIndex)
-      const endIdx = Math.max(dragStart.index, endIndex)
+  // Compute active selection - only exists while dragging
+  const activeSelection = useMemo(() => {
+    if (!isDragging || !dragStart || !hoverData || Math.abs(dragStart.index - hoverData.index) < 1) {
+      return null
+    }
 
-      const startData = chartData.data_points[startIdx]
-      const endData = chartData.data_points[endIdx]
-      const startPoint = chartPoints[startIdx]
-      const endPoint = chartPoints[endIdx]
+    const startIdx = Math.min(dragStart.index, hoverData.index)
+    const endIdx = Math.max(dragStart.index, hoverData.index)
+    const startPoint = chartPoints[startIdx]
+    const endPoint = chartPoints[endIdx]
+    const startData = chartData?.data_points?.[startIdx]
+    const endData = chartData?.data_points?.[endIdx]
 
-      if (startData && endData && startPoint && endPoint) {
-        setDragSelection({
-          startIndex: startIdx,
-          endIndex: endIdx,
-          startPrice: startData.price,
-          endPrice: endData.price,
-          startTimestamp: startData.timestamp,
-          endTimestamp: endData.timestamp,
-          startX: startPoint.x,
-          endX: endPoint.x,
-          startY: startPoint.y,
-          endY: endPoint.y
-        })
-        justFinishedDrag.current = true
+    if (startPoint && endPoint && startData && endData) {
+      return {
+        startIndex: startIdx,
+        endIndex: endIdx,
+        startPrice: startData.price,
+        endPrice: endData.price,
+        startTimestamp: startData.timestamp,
+        endTimestamp: endData.timestamp,
+        startX: startPoint.x,
+        endX: endPoint.x,
+        startY: startPoint.y,
+        endY: endPoint.y
       }
     }
-
-    setIsDragging(false)
-    setDragStart(null)
-  }, [isDragging, dragStart, chartData, chartPoints])
-
-  // Clear selection on click (when clicking without drag)
-  const handleChartClick = useCallback(() => {
-    // If we just finished a drag, don't clear the selection - this click is part of the drag
-    if (justFinishedDrag.current) {
-      justFinishedDrag.current = false
-      return
-    }
-    // If we had a drag selection and user clicks (not part of a drag), clear it
-    if (dragSelection && !isDragging) {
-      setDragSelection(null)
-    }
-  }, [dragSelection, isDragging])
+    return null
+  }, [isDragging, dragStart, hoverData, chartPoints, chartData])
 
   // Calculate displayed price and change
   // If drag selection exists, use selection range; if hovering, use hover point; else use current price
-  const displayPrice = dragSelection
-    ? dragSelection.endPrice
+  const displayPrice = activeSelection
+    ? activeSelection.endPrice
     : (hoverData?.price ?? stock?.current_price)
 
-  const baselinePrice = dragSelection
-    ? dragSelection.startPrice
+  const baselinePrice = activeSelection
+    ? activeSelection.startPrice
     : (chartData?.data_points?.[0]?.price ?? stock?.closing_price ?? 0)
 
   const displayChangeAmount = displayPrice && baselinePrice ? displayPrice - baselinePrice : stock?.day_change_amount
@@ -330,8 +310,8 @@ function StockDetail() {
     : stock?.day_change_percent
 
   // Determine if selection/hover is positive
-  const selectionIsPositive = dragSelection
-    ? dragSelection.endPrice >= dragSelection.startPrice
+  const selectionIsPositive = activeSelection
+    ? activeSelection.endPrice >= activeSelection.startPrice
     : (hoverData ? (hoverData.price >= baselinePrice) : isPositive)
 
   // Generate paths for before/after cursor
@@ -358,13 +338,13 @@ function StockDetail() {
 
   // Generate paths for selection visualization
   const generateSelectionPaths = useCallback(() => {
-    if (!dragSelection || chartPoints.length < 2) {
+    if (!activeSelection || chartPoints.length < 2) {
       return { beforeSelectionPath: '', selectionPath: '', afterSelectionPath: '' }
     }
 
-    const beforePoints = chartPoints.slice(0, dragSelection.startIndex + 1)
-    const selectionPoints = chartPoints.slice(dragSelection.startIndex, dragSelection.endIndex + 1)
-    const afterPoints = chartPoints.slice(dragSelection.endIndex)
+    const beforePoints = chartPoints.slice(0, activeSelection.startIndex + 1)
+    const selectionPoints = chartPoints.slice(activeSelection.startIndex, activeSelection.endIndex + 1)
+    const afterPoints = chartPoints.slice(activeSelection.endIndex)
 
     const beforeSelectionPath = beforePoints.map((p, i) =>
       `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`
@@ -379,15 +359,15 @@ function StockDetail() {
     ).join(' ')
 
     return { beforeSelectionPath, selectionPath, afterSelectionPath }
-  }, [dragSelection, chartPoints])
+  }, [activeSelection, chartPoints])
 
   const { beforeSelectionPath, selectionPath, afterSelectionPath } = generateSelectionPaths()
 
   // Format timestamp range for selection
   const formatSelectionTimestamp = () => {
-    if (!dragSelection) return ''
-    const startDate = new Date(dragSelection.startTimestamp)
-    const endDate = new Date(dragSelection.endTimestamp)
+    if (!activeSelection) return ''
+    const startDate = new Date(activeSelection.startTimestamp)
+    const endDate = new Date(activeSelection.endTimestamp)
 
     const startStr = startDate.toLocaleString('en-US', {
       month: 'short',
@@ -424,7 +404,7 @@ function StockDetail() {
     )
   }
 
-  const changeIsPositive = dragSelection ? selectionIsPositive : (displayChangePercent || 0) >= 0
+  const changeIsPositive = activeSelection ? selectionIsPositive : (displayChangePercent || 0) >= 0
 
   return (
     <div className="stock-detail-page">
@@ -501,18 +481,16 @@ function StockDetail() {
             onMouseMove={handleChartMouseMove}
             onMouseLeave={handleChartMouseLeave}
             onMouseDown={handleChartMouseDown}
-            onMouseUp={handleChartMouseUp}
-            onClick={handleChartClick}
           >
             {chartLoading ? (
               <div className="chart-loading">Loading chart...</div>
             ) : (
               <>
                 {/* Timestamp label - shows selection range or hover time */}
-                {dragSelection ? (
+                {activeSelection ? (
                   <div
                     className="hover-timestamp selection-timestamp"
-                    style={{ left: `${(dragSelection.startX + dragSelection.endX) / 2}%` }}
+                    style={{ left: `${(activeSelection.startX + activeSelection.endX) / 2}%` }}
                   >
                     {formatSelectionTimestamp()}
                   </div>
@@ -526,27 +504,27 @@ function StockDetail() {
                 )}
 
                 {/* Selection dots */}
-                {dragSelection && (
+                {activeSelection && (
                   <>
                     <div
                       className={`cursor-dot-html ${selectionIsPositive ? 'positive' : 'negative'}`}
                       style={{
-                        left: `${dragSelection.startX}%`,
-                        top: `${dragSelection.startY}%`
+                        left: `${activeSelection.startX}%`,
+                        top: `${activeSelection.startY}%`
                       }}
                     />
                     <div
                       className={`cursor-dot-html ${selectionIsPositive ? 'positive' : 'negative'}`}
                       style={{
-                        left: `${dragSelection.endX}%`,
-                        top: `${dragSelection.endY}%`
+                        left: `${activeSelection.endX}%`,
+                        top: `${activeSelection.endY}%`
                       }}
                     />
                   </>
                 )}
 
                 {/* Cursor dot - rendered as HTML for proper circle shape (only when not in selection mode) */}
-                {hoverData && !dragSelection && (
+                {hoverData && !activeSelection && (
                   <div
                     className={`cursor-dot-html ${isPositive ? 'positive' : 'negative'}`}
                     style={{
@@ -557,7 +535,7 @@ function StockDetail() {
                 )}
 
                 {/* Price label on right - only shows on hover/selection, positioned at baseline */}
-                {(hoverData || dragSelection) && (
+                {(hoverData || activeSelection) && (
                   <div
                     className="price-label"
                     style={{ top: `${openY}%` }}
@@ -577,7 +555,7 @@ function StockDetail() {
                   />
 
                   {/* Chart rendering based on mode: selection, hover, or default */}
-                  {dragSelection ? (
+                  {activeSelection ? (
                     <>
                       {/* Before selection - faded */}
                       <path
@@ -599,16 +577,16 @@ function StockDetail() {
                       />
                       {/* Selection boundary lines */}
                       <line
-                        x1={dragSelection.startX}
+                        x1={activeSelection.startX}
                         y1="0"
-                        x2={dragSelection.startX}
+                        x2={activeSelection.startX}
                         y2="100"
                         className="cursor-line"
                       />
                       <line
-                        x1={dragSelection.endX}
+                        x1={activeSelection.endX}
                         y1="0"
-                        x2={dragSelection.endX}
+                        x2={activeSelection.endX}
                         y2="100"
                         className="cursor-line"
                       />
