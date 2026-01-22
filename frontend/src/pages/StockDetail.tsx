@@ -201,28 +201,111 @@ function StockDetail() {
       return () => clearTimeout(timer)
     }
   }, [isSlotAnimating]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Generate smooth Catmull-Rom spline path through points
+  const generateSmoothPath = useCallback((points: { x: number; y: number }[], tension: number = 0.5): string => {
+    if (points.length < 2) return ''
+    if (points.length === 2) {
+      return `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)} L${points[1].x.toFixed(2)},${points[1].y.toFixed(2)}`
+    }
+
+    let path = `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}`
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i === 0 ? 0 : i - 1]
+      const p1 = points[i]
+      const p2 = points[i + 1]
+      const p3 = points[i + 2 >= points.length ? points.length - 1 : i + 2]
+
+      // Catmull-Rom to Cubic Bezier conversion
+      const cp1x = p1.x + (p2.x - p0.x) * tension / 6
+      const cp1y = p1.y + (p2.y - p0.y) * tension / 6
+      const cp2x = p2.x - (p3.x - p1.x) * tension / 6
+      const cp2y = p2.y - (p3.y - p1.y) * tension / 6
+
+      path += ` C${cp1x.toFixed(2)},${cp1y.toFixed(2)} ${cp2x.toFixed(2)},${cp2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`
+    }
+
+    return path
+  }, [])
+
+  // Downsample data points based on period
+  const downsampleData = useCallback((dataPoints: typeof chartData.data_points, period: Period) => {
+    if (!dataPoints || dataPoints.length < 2) return dataPoints
+    
+    if (period === '1W') {
+      // 1W data is 15-min intervals, sample every 2nd point for ~30 min intervals
+      return dataPoints.filter((_, i) => i % 2 === 0 || i === dataPoints.length - 1)
+    }
+    
+    if (period === '1M') {
+      // Keep only the last data point of each day
+      const dailyPoints: typeof dataPoints = []
+      let currentDay = ''
+      
+      for (let i = 0; i < dataPoints.length; i++) {
+        const point = dataPoints[i]
+        const day = point.timestamp.split('T')[0]
+        
+        if (day !== currentDay) {
+          // New day - if we have a previous day, the last point added is correct
+          currentDay = day
+        }
+        
+        // Always update to latest point of the day
+        if (dailyPoints.length === 0 || dailyPoints[dailyPoints.length - 1].timestamp.split('T')[0] !== day) {
+          dailyPoints.push(point)
+        } else {
+          dailyPoints[dailyPoints.length - 1] = point
+        }
+      }
+      
+      return dailyPoints
+    }
+    
+    return dataPoints
+  }, [])
+
   // Generate SVG path and points for chart
   const generateChartData = useCallback(() => {
     if (!chartData?.data_points || chartData.data_points.length < 2) {
       return { path: '', isPositive: true, openY: 50, points: [], min: 0, max: 0, range: 1 }
     }
-    const prices = chartData.data_points.map(p => p.price)
+    
+    // Full data for hover interactions
+    const allPrices = chartData.data_points.map(p => p.price)
     const width = 100
     const height = 100
     const padding = 5
-    const min = Math.min(...prices)
-    const max = Math.max(...prices)
+    const min = Math.min(...allPrices)
+    const max = Math.max(...allPrices)
     const range = max - min || 1
-    const points = prices.map((price, i) => {
-      const x = (i / (prices.length - 1)) * width
+    
+    // Full points array for hover (maps to all data points)
+    const points = allPrices.map((price, i) => {
+      const x = (i / (allPrices.length - 1)) * width
       const y = padding + ((max - price) / range) * (height - padding * 2)
       return { x, y, price }
     })
-    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ')
-    const isPositive = prices[prices.length - 1] >= prices[0]
-    const openY = padding + ((max - prices[0]) / range) * (height - padding * 2)
+    
+    // Downsampled data for path drawing (smoother appearance)
+    const downsampledData = downsampleData(chartData.data_points, selectedPeriod)
+    const downsampledPrices = downsampledData.map(p => p.price)
+    const pathPoints = downsampledPrices.map((price, i) => {
+      const x = (i / (downsampledPrices.length - 1)) * width
+      const y = padding + ((max - price) / range) * (height - padding * 2)
+      return { x, y, price }
+    })
+    
+    // Use smooth curves for 1W and longer periods
+    const useSmoothing = selectedPeriod !== '1D'
+    const pathD = useSmoothing 
+      ? generateSmoothPath(pathPoints)
+      : points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ')
+    
+    const isPositive = allPrices[allPrices.length - 1] >= allPrices[0]
+    const openY = padding + ((max - allPrices[0]) / range) * (height - padding * 2)
     return { path: pathD, isPositive, openY, points, min, max, range }
-  }, [chartData])
+  }, [chartData, selectedPeriod, generateSmoothPath, downsampleData])
   const { path: chartPath, isPositive, openY, points: chartPoints } = generateChartData()
   // Handle mouse move on chart
   const handleChartMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
