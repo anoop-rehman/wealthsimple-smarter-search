@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getStockDetail, getStockChart } from '../services/api'
+import { getStockDetail, getStockChart, searchStocks } from '../services/api'
 import type { Stock, ChartResponse } from '../types/stock'
 import './StockDetail.css'
 
@@ -126,6 +126,11 @@ function StockDetail() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState<HoverData | null>(null)
 
+  // Navbar search state
+  const [navSearchQuery, setNavSearchQuery] = useState('')
+  const [navResults, setNavResults] = useState<Stock[]>([])
+  const [navIsLoading, setNavIsLoading] = useState(false)
+
   // Focus search on "/" key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -137,6 +142,39 @@ function StockDetail() {
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  // Navbar search with debounce
+  useEffect(() => {
+    if (!navSearchQuery.trim()) {
+      setNavResults([])
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setNavIsLoading(true)
+      try {
+        const response = await searchStocks({ query: navSearchQuery, limit: 5 })
+        if (response.success) {
+          setNavResults(response.results)
+        }
+      } catch (error) {
+        console.error('Navbar search error:', error)
+      } finally {
+        setNavIsLoading(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [navSearchQuery])
+
+  const handleNavKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && navSearchQuery.trim()) {
+      navigate(`/stocks?q=${encodeURIComponent(navSearchQuery)}`)
+      setNavSearchQuery('')
+    }
+  }
+
+  const showNavDropdown = navSearchQuery.length > 0
 
   // Fetch stock details
   useEffect(() => {
@@ -427,7 +465,6 @@ function StockDetail() {
           <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>W</div>
           <nav className="nav-links">
             <a href="/" className="nav-link">Home</a>
-            <a href="#" className="nav-link">Household</a>
             <a href="#" className="nav-link">Move</a>
             <a href="#" className="nav-link">Activity</a>
             <a href="#" className="nav-link">Tax</a>
@@ -435,23 +472,77 @@ function StockDetail() {
           </nav>
         </div>
         <div className="header-right">
-          <span className="header-date">
-            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-          </span>
-          <span className="trading-status">Market hours</span>
-          <div className="search-bar">
-            <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="M21 21l-4.35-4.35"/>
-            </svg>
-            <input
-              ref={searchInputRef}
-              type="text"
-              className="search-input"
-              placeholder="Search name or symbol"
-              onFocus={() => navigate('/stocks')}
-            />
-            <span className="search-shortcut">/</span>
+          <div className="navbar-search-container">
+            <div className={`search-bar ${showNavDropdown ? 'has-results' : ''}`}>
+              <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+              </svg>
+              <input
+                ref={searchInputRef}
+                type="text"
+                className="search-input"
+                placeholder="Search stocks..."
+                value={navSearchQuery}
+                onChange={(e) => setNavSearchQuery(e.target.value)}
+                onKeyDown={handleNavKeyDown}
+              />
+              {!showNavDropdown && <span className="search-shortcut">/</span>}
+            </div>
+
+            {showNavDropdown && (
+              <div className="navbar-search-dropdown">
+                <div className="dropdown-section">
+                  <span className="dropdown-label">
+                    {navIsLoading ? 'Searching...' : `Results (${navResults.length})`}
+                  </span>
+                  <div className="dropdown-results">
+                    {navResults.map((result, index) => (
+                      <div
+                        key={index}
+                        className="dropdown-result-item"
+                        onClick={() => {
+                          navigate(`/stock/${result.ticker}`)
+                          setNavSearchQuery('')
+                        }}
+                      >
+                        <div className="result-left">
+                          <div
+                            className="result-logo"
+                            style={{ backgroundColor: getLogoColor(result.sector) }}
+                          >
+                            {getLogoText(result.ticker)}
+                          </div>
+                          <span className="result-ticker">{result.ticker}</span>
+                          <span className="result-name">{result.stock_name}</span>
+                        </div>
+                        <span className="result-star">☆</span>
+                      </div>
+                    ))}
+                    {!navIsLoading && navResults.length === 0 && (
+                      <div className="dropdown-result-item">
+                        <span className="result-name">No results found</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {navResults.length > 0 && (
+                  <div className="dropdown-footer">
+                    <a
+                      href="#"
+                      className="view-all-link"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        navigate(`/stocks?q=${encodeURIComponent(navSearchQuery)}`)
+                        setNavSearchQuery('')
+                      }}
+                    >
+                      View all results <span className="arrow">→</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <button className="icon-btn icon-btn-circle">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
