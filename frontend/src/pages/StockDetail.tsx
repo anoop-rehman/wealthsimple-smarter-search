@@ -109,6 +109,7 @@ function StockDetail() {
   const [animationStartDecimal, setAnimationStartDecimal] = useState<string>('')
   const [animationEndDecimal, setAnimationEndDecimal] = useState<string>('')
   const [hasInitialAnimation, setHasInitialAnimation] = useState(false)
+  const [shouldAnimateChart, setShouldAnimateChart] = useState(true)
   const lastHoveredPriceRef = useRef<number | null>(null)
   const isAnimatingRef = useRef(false)
   const slotCounterRef = useRef<SlotCounterRef>(null)
@@ -179,6 +180,16 @@ function StockDetail() {
     }
     fetchChart()
   }, [ticker, selectedPeriod])
+
+  // Trigger chart animation when period changes
+  useEffect(() => {
+    setShouldAnimateChart(true)
+    const timer = setTimeout(() => {
+      setShouldAnimateChart(false)
+    }, 850) // Slightly longer than animation duration (800ms)
+    return () => clearTimeout(timer)
+  }, [selectedPeriod])
+
   // Trigger animation when SlotCounter is ready
   useEffect(() => {
     if (isSlotAnimating && animationStartInt && animationEndInt && slotCounterRef.current && decimalSlotCounterRef.current) {
@@ -736,8 +747,9 @@ function StockDetail() {
                     </>
                   ) : (
                     <path
+                      key={`chart-${selectedPeriod}`}
                       d={chartPath}
-                      className={`chart-line ${isPositive ? 'positive' : 'negative'}`}
+                      className={`chart-line ${shouldAnimateChart ? 'animate' : ''} ${isPositive ? 'positive' : 'negative'}`}
                       fill="none"
                     />
                   )}
