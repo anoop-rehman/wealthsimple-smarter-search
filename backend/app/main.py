@@ -8,6 +8,16 @@ from app.services.scheduler_service import start_scheduler, stop_scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Startup: initialize database tables
+    try:
+        from app.database import Base, engine
+        from app.models.stock import Stock
+        print("Initializing database tables...")
+        Base.metadata.create_all(bind=engine)
+        print("Database tables initialized successfully!")
+    except Exception as e:
+        print(f"Warning: Could not initialize database tables: {e}")
+    
     # Startup: start the scheduler
     start_scheduler(interval_minutes=15)
     yield
