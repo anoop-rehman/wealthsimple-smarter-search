@@ -121,3 +121,39 @@ class QueryCache:
 
 # Global cache instance
 query_cache = QueryCache(max_size=1000, ttl_seconds=3600)  # 1 hour TTL
+
+# Precomputed SQL for suggested prompts (no LLM call needed)
+PRECOMPUTED_QUERIES = {
+    'healthcare stocks with upcoming earnings': 
+        "SELECT * FROM stocks WHERE sector ILIKE '%Healthcare%' AND earnings_call_date >= CURRENT_DATE ORDER BY earnings_call_date ASC LIMIT 50",
+    'tech stocks under $100': 
+        "SELECT * FROM stocks WHERE sector ILIKE '%Technology%' AND current_price < 100 LIMIT 50",
+    'top gaining stocks today': 
+        "SELECT * FROM stocks WHERE day_change_percent > 0 ORDER BY day_change_percent DESC LIMIT 50",
+    'energy sector with high volume': 
+        "SELECT * FROM stocks WHERE sector ILIKE '%Energy%' ORDER BY volume DESC LIMIT 50",
+    'canadian bank stocks': 
+        "SELECT * FROM stocks WHERE (exchange ILIKE '%TSX%' OR exchange ILIKE '%TOR%') AND (sector ILIKE '%Finance%' OR industry ILIKE '%Bank%') LIMIT 50",
+}
+
+
+def warm_cache() -> dict:
+    """
+    Pre-warm the cache with precomputed SQL for suggested prompts.
+    
+    No LLM calls - uses hardcoded SQL that matches what the LLM would generate.
+    
+    Returns:
+        Dict with count of warmed queries
+    """
+    warmed = 0
+    for prompt, sql in PRECOMPUTED_QUERIES.items():
+        # Check if already cached
+        if query_cache.get(prompt, 50) is None:
+            query_cache.set(prompt, 50, sql)
+            print(f"[Cache WARM] '{prompt}' -> Cached")
+            warmed += 1
+        else:
+            print(f"[Cache WARM] '{prompt}' -> Already cached")
+    
+    return {"warmed": warmed, "total_prompts": len(PRECOMPUTED_QUERIES)}

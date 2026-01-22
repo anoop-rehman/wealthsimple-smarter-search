@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.search import SearchRequest, SearchResponse, CacheStatsResponse
 from app.services.search_service import search_stocks
-from app.services.cache_service import query_cache
+from app.services.cache_service import query_cache, warm_cache
 
 router = APIRouter(tags=["search"])
 
@@ -56,3 +56,18 @@ def clear_cache():
     """
     query_cache.clear()
     return {"message": "Cache cleared successfully"}
+
+
+@router.post("/cache/warm")
+def warm_cache_endpoint():
+    """
+    Pre-warm the cache with suggested prompts.
+    
+    This generates SQL for the 5 suggested homepage prompts
+    so they're ready instantly when users click them.
+    """
+    result = warm_cache()
+    return {
+        "message": f"Cache warmed with {result['warmed']} new queries",
+        **result
+    }
