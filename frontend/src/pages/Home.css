@@ -130,8 +130,8 @@
 }
 
 .home-search-icon {
-  color: #666666;
-  font-size: 18px;
+  color: #888888;
+  flex-shrink: 0;
 }
 
 .home-search-input {

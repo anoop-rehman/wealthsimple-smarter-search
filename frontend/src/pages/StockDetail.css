@@ -68,8 +68,8 @@
 }
 
 .stock-detail-page .search-icon {
-  color: #666;
-  font-size: 14px;
+  color: #888;
+  flex-shrink: 0;
 }
 
 .stock-detail-page .search-input {
