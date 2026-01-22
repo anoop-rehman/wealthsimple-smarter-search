@@ -123,17 +123,22 @@ class QueryCache:
 query_cache = QueryCache(max_size=1000, ttl_seconds=3600)  # 1 hour TTL
 
 # Precomputed SQL for suggested prompts (no LLM call needed)
+# Key format: "query|limit" normalized (lowercase, trimmed)
 PRECOMPUTED_QUERIES = {
-    'healthcare stocks with upcoming earnings': 
+    # Homepage suggested prompts (limit 50)
+    ('healthcare stocks with upcoming earnings', 50): 
         "SELECT * FROM stocks WHERE sector ILIKE '%Healthcare%' AND earnings_call_date >= CURRENT_DATE ORDER BY earnings_call_date ASC LIMIT 50",
-    'tech stocks under $100': 
+    ('tech stocks under $100', 50): 
         "SELECT * FROM stocks WHERE sector ILIKE '%Technology%' AND current_price < 100 LIMIT 50",
-    'top gaining stocks today': 
+    ('top gaining stocks today', 50): 
         "SELECT * FROM stocks WHERE day_change_percent > 0 ORDER BY day_change_percent DESC LIMIT 50",
-    'energy sector with high volume': 
+    ('energy sector with high volume', 50): 
         "SELECT * FROM stocks WHERE sector ILIKE '%Energy%' ORDER BY volume DESC LIMIT 50",
-    'canadian bank stocks': 
+    ('canadian bank stocks', 50): 
         "SELECT * FROM stocks WHERE (exchange ILIKE '%TSX%' OR exchange ILIKE '%TOR%') AND (sector ILIKE '%Finance%' OR industry ILIKE '%Bank%') LIMIT 50",
+    # All stocks query (high limit for showing all)
+    ('all stocks', 500): 
+        "SELECT * FROM stocks ORDER BY ticker ASC LIMIT 500",
 }
 
 
@@ -147,13 +152,13 @@ def warm_cache() -> dict:
         Dict with count of warmed queries
     """
     warmed = 0
-    for prompt, sql in PRECOMPUTED_QUERIES.items():
+    for (prompt, limit), sql in PRECOMPUTED_QUERIES.items():
         # Check if already cached
-        if query_cache.get(prompt, 50) is None:
-            query_cache.set(prompt, 50, sql)
-            print(f"[Cache WARM] '{prompt}' -> Cached")
+        if query_cache.get(prompt, limit) is None:
+            query_cache.set(prompt, limit, sql)
+            print(f"[Cache WARM] '{prompt}' (limit={limit}) -> Cached")
             warmed += 1
         else:
-            print(f"[Cache WARM] '{prompt}' -> Already cached")
+            print(f"[Cache WARM] '{prompt}' (limit={limit}) -> Already cached")
     
     return {"warmed": warmed, "total_prompts": len(PRECOMPUTED_QUERIES)}

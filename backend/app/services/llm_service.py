@@ -47,8 +47,9 @@ Available sectors: Healthcare, Technology, Finance, Consumer Discretionary, Cons
 
 Rules:
 1. ONLY generate SELECT statements - never INSERT, UPDATE, DELETE, DROP, or any other statement type
-2. Always include a LIMIT clause (use the provided limit or default to 50)
-3. Use CURRENT_DATE for date calculations:
+2. For most queries, include a LIMIT clause (use the provided limit or default to 50)
+3. EXCEPTION: For "all stocks", "show all", "list all stocks", or similar queries requesting ALL results, use the provided limit (which will be high like 500) to show all stocks
+4. Use CURRENT_DATE for date calculations:
    - "next week" = earnings_call_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
    - "next month" = earnings_call_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
    - "this week" = earnings_call_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
@@ -75,6 +76,9 @@ SQL: SELECT * FROM stocks WHERE day_change_percent > 0 ORDER BY day_change_perce
 
 User: "Stocks under $50"
 SQL: SELECT * FROM stocks WHERE current_price < 50 LIMIT 50
+
+User: "all stocks" or "show all stocks"
+SQL: SELECT * FROM stocks LIMIT 500
 """
 
 

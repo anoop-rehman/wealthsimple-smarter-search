@@ -126,7 +126,12 @@ function Stocks() {
   const fetchStocks = useCallback(async (query: string) => {
     setIsLoading(true)
     try {
-      const response = await searchStocks({ query: query || 'all stocks', limit: 50 })
+      // For "all stocks" or empty query, don't limit results
+      const isAllStocks = !query || query.toLowerCase() === 'all stocks'
+      const response = await searchStocks({ 
+        query: query || 'all stocks', 
+        limit: isAllStocks ? 500 : 50  // 500 for all stocks, 50 for specific queries
+      })
       if (response.success) {
         setStocks(response.results)
         setPageTitle(query || 'All Stocks')
