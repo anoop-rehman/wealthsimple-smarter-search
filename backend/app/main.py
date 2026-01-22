@@ -12,11 +12,18 @@ async def lifespan(app: FastAPI):
     try:
         from app.database import Base, engine
         from app.models.stock import Stock
+        from app.config import settings
+        
+        # Log database connection info (hide password)
+        db_url_safe = settings.DATABASE_URL.split('@')[-1] if '@' in settings.DATABASE_URL else settings.DATABASE_URL
+        print(f"Connecting to database at: {db_url_safe}")
         print("Initializing database tables...")
         Base.metadata.create_all(bind=engine)
         print("Database tables initialized successfully!")
     except Exception as e:
         print(f"Warning: Could not initialize database tables: {e}")
+        import traceback
+        traceback.print_exc()
     
     # Startup: start the scheduler
     start_scheduler(interval_minutes=15)
