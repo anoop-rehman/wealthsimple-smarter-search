@@ -152,7 +152,7 @@ function Home() {
       <div className="home-content">
         {/* Title */}
         <div className="hero-title">
-          <span className="hero-intro">Introducing</span>
+          <span className="hero-intro">Introducing a simpler,</span>
           <span className="hero-main">Smarter Search</span>
         </div>
 
