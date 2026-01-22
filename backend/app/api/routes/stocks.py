@@ -359,3 +359,116 @@ def seed_database_endpoint(db: Session = Depends(get_db)):
             status_code=500,
             detail=f"Failed to seed database: {str(e)}"
         )
+
+
+@router.post("/admin/seed-real-stocks", response_model=UpdateResponse)
+def seed_real_stocks_endpoint(db: Session = Depends(get_db)):
+    """
+    Seed the database with real stock data from Yahoo Finance.
+    
+    Seeds 51 TSX stocks, 50 NYSE stocks, and 50 NASDAQ stocks (151 total).
+    WARNING: This will delete all existing stocks and replace them with real data.
+    This may take a few minutes as it fetches data from Yahoo Finance.
+    """
+    from app.services.stock_update_service import add_stock_from_yahoo
+    
+    # TSX stocks (51)
+    TSX_STOCKS = [
+        ("RY", "RY.TO"), ("TD", "TD.TO"), ("BNS", "BNS.TO"), ("BMO", "BMO.TO"), ("CM", "CM.TO"), ("NA", "NA.TO"),
+        ("MFC", "MFC.TO"), ("SLF", "SLF.TO"), ("IFC", "IFC.TO"), ("POW", "POW.TO"),
+        ("ENB", "ENB.TO"), ("TRP", "TRP.TO"), ("CNQ", "CNQ.TO"), ("SU", "SU.TO"), ("CVE", "CVE.TO"), ("IMO", "IMO.TO"),
+        ("BCE", "BCE.TO"), ("T", "T.TO"), ("RCI-B", "RCI-B.TO"),
+        ("CNR", "CNR.TO"), ("CP", "CP.TO"),
+        ("ABX", "ABX.TO"), ("NTR", "NTR.TO"), ("FM", "FM.TO"), ("TECK-B", "TECK-B.TO"),
+        ("ATD", "ATD.TO"), ("L", "L.TO"), ("DOL", "DOL.TO"), ("MRU", "MRU.TO"), ("QSR", "QSR.TO"),
+        ("SHOP", "SHOP.TO"), ("CSU", "CSU.TO"), ("OTEX", "OTEX.TO"), ("BB", "BB.TO"),
+        ("BAM", "BAM.TO"), ("BN", "BN.TO"),
+        ("FTS", "FTS.TO"), ("EMA", "EMA.TO"), ("H", "H.TO"),
+        ("WSP", "WSP.TO"), ("GIB-A", "GIB-A.TO"),
+        ("SAP", "SAP.TO"), ("WCN", "WCN.TO"), ("TRI", "TRI.TO"), ("GFL", "GFL.TO"), ("CCL-B", "CCL-B.TO"),
+        ("FFH", "FFH.TO"), ("AQN", "AQN.TO"), ("CTC-A", "CTC-A.TO"),
+    ]
+    
+    # NYSE stocks (50)
+    NYSE_STOCKS = [
+        ("BRK-B", None), ("V", None), ("UNH", None), ("JNJ", None), ("WMT", None), ("JPM", None), ("MA", None),
+        ("XOM", None), ("PG", None), ("HD", None),
+        ("BAC", None), ("WFC", None), ("GS", None), ("MS", None), ("C", None), ("BLK", None), ("SCHW", None),
+        ("AXP", None), ("CB", None), ("MMC", None),
+        ("LLY", None), ("MRK", None), ("ABBV", None), ("PFE", None), ("TMO", None), ("ABT", None), ("DHR", None),
+        ("BMY", None), ("CVS", None), ("CI", None),
+        ("CVX", None), ("COP", None), ("SLB", None), ("EOG", None), ("OXY", None),
+        ("CAT", None), ("HON", None), ("UNP", None), ("BA", None), ("GE", None), ("RTX", None), ("DE", None),
+        ("LMT", None), ("MMM", None),
+        ("KO", None), ("MCD", None), ("DIS", None), ("NKE", None), ("LOW", None), ("TGT", None),
+    ]
+    
+    # NASDAQ stocks (50)
+    NASDAQ_STOCKS = [
+        ("AAPL", None), ("MSFT", None), ("GOOGL", None), ("GOOG", None), ("AMZN", None), ("NVDA", None),
+        ("META", None), ("TSLA", None), ("AVGO", None), ("COST", None),
+        ("ADBE", None), ("NFLX", None), ("AMD", None), ("QCOM", None), ("INTC", None), ("CSCO", None), ("TXN", None),
+        ("INTU", None), ("AMAT", None), ("MU", None),
+        ("CMCSA", None), ("TMUS", None), ("CHTR", None), ("ATVI", None), ("EA", None),
+        ("PEP", None), ("SBUX", None), ("MDLZ", None), ("MNST", None), ("KDP", None), ("LULU", None), ("ROST", None),
+        ("DLTR", None), ("EBAY", None), ("MAR", None),
+        ("AMGN", None), ("GILD", None), ("VRTX", None), ("REGN", None), ("MRNA", None), ("BIIB", None), ("ILMN", None),
+        ("DXCM", None), ("ISRG", None), ("IDXX", None),
+        ("PYPL", None), ("ADP", None), ("PAYX", None), ("CRWD", None), ("PANW", None),
+    ]
+    
+    try:
+        # Clear existing data
+        db.query(Stock).delete()
+        db.commit()
+        
+        success_count = 0
+        failure_count = 0
+        all_stocks = []
+        
+        # Seed TSX stocks
+        print("Seeding TSX stocks...")
+        for ticker, yahoo_ticker in TSX_STOCKS:
+            if add_stock_from_yahoo(db, ticker, yahoo_ticker):
+                success_count += 1
+                all_stocks.append(ticker)
+            else:
+                failure_count += 1
+                print(f"Failed to add TSX stock: {ticker}")
+        
+        # Seed NYSE stocks
+        print("Seeding NYSE stocks...")
+        for ticker, yahoo_ticker in NYSE_STOCKS:
+            if add_stock_from_yahoo(db, ticker, yahoo_ticker):
+                success_count += 1
+                all_stocks.append(ticker)
+            else:
+                failure_count += 1
+                print(f"Failed to add NYSE stock: {ticker}")
+        
+        # Seed NASDAQ stocks
+        print("Seeding NASDAQ stocks...")
+        for ticker, yahoo_ticker in NASDAQ_STOCKS:
+            if add_stock_from_yahoo(db, ticker, yahoo_ticker):
+                success_count += 1
+                all_stocks.append(ticker)
+            else:
+                failure_count += 1
+                print(f"Failed to add NASDAQ stock: {ticker}")
+        
+        db.commit()
+        
+        return UpdateResponse(
+            success=True,
+            message=f"Seeded {success_count} stocks successfully ({failure_count} failed). TSX: {len([s for s in TSX_STOCKS if s[0] in all_stocks])}, NYSE: {len([s for s in NYSE_STOCKS if s[0] in all_stocks])}, NASDAQ: {len([s for s in NASDAQ_STOCKS if s[0] in all_stocks])}",
+            updated=success_count,
+            failed=failure_count
+        )
+    except Exception as e:
+        db.rollback()
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to seed real stocks: {str(e)}"
+        )
