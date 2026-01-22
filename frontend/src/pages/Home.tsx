@@ -61,9 +61,13 @@ function Home() {
 
   const debouncedQuery = useDebounce(searchQuery, 300)
 
-  // Auto-focus search bar on page load
+  // Auto-focus search bar immediately after "Search" animation completes (4.5s)
   useEffect(() => {
-    searchInputRef.current?.focus()
+    const focusTimer = setTimeout(() => {
+      searchInputRef.current?.focus()
+    }, 4500) // Exactly when "Search" fadeIn completes (3s start + 1.5s duration)
+    
+    return () => clearTimeout(focusTimer)
   }, [])
 
   // Focus search on "/" key press
@@ -171,8 +175,23 @@ function Home() {
       <div className="home-content">
         {/* Title */}
         <div className="hero-title">
-          <span className="hero-intro">Introducing a simpler,</span>
-          <span className="hero-main">Smarter Search</span>
+          <span className="hero-intro" style={{
+            '--animation-start': '0s',
+            '--animation-end': '1s',
+            '--animation-curve': 'ease-out'
+          } as React.CSSProperties}>Introducing a simpler,</span>
+          <div className="hero-main">
+            <span className="hero-smarter" style={{
+              '--animation-start': '1.5s',
+              '--animation-end': '2.5s',
+              '--animation-curve': 'ease-out'
+            } as React.CSSProperties}>Smarter</span>
+            <span className="hero-search" style={{
+              '--animation-start': '3s',
+              '--animation-end': '4.5s',
+              '--animation-curve': 'ease-out'
+            } as React.CSSProperties}>Search</span>
+          </div>
         </div>
 
         <div className="search-container">
