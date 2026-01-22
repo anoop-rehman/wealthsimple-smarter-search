@@ -229,7 +229,7 @@ function StockDetail() {
   }, [])
 
   // Downsample data points based on period
-  const downsampleData = useCallback((dataPoints: typeof chartData.data_points, period: Period) => {
+  const downsampleData = useCallback((dataPoints: ChartResponse['data_points'], period: Period) => {
     if (!dataPoints || dataPoints.length < 2) return dataPoints
     
     if (period === '1W') {
@@ -239,7 +239,7 @@ function StockDetail() {
     
     if (period === '1M') {
       // Keep only the last data point of each day
-      const dailyPoints: typeof dataPoints = []
+      const dailyPoints: ChartResponse['data_points'] = []
       let currentDay = ''
       
       for (let i = 0; i < dataPoints.length; i++) {
