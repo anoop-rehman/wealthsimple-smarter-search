@@ -8,6 +8,44 @@ from sqlalchemy.orm import Session
 from app.models.stock import Stock
 
 
+def normalize_exchange(yahoo_exchange: Optional[str], yahoo_ticker: Optional[str] = None) -> str:
+    """
+    Normalize Yahoo Finance exchange codes to readable names.
+    
+    Yahoo Finance returns codes like:
+    - NMS, NCM, NGM -> NASDAQ
+    - NYQ -> NYSE
+    - TOR -> TSX
+    - etc.
+    """
+    if not yahoo_exchange:
+        # Try to infer from ticker suffix
+        if yahoo_ticker and yahoo_ticker.endswith('.TO'):
+            return 'TSX'
+        return 'Unknown'
+    
+    exchange_upper = yahoo_exchange.upper()
+    
+    # NASDAQ variants
+    if exchange_upper in ('NMS', 'NCM', 'NGM', 'NASDAQ'):
+        return 'NASDAQ'
+    
+    # NYSE
+    if exchange_upper in ('NYQ', 'NYSE'):
+        return 'NYSE'
+    
+    # TSX
+    if exchange_upper in ('TOR', 'TSX', 'TORONTO'):
+        return 'TSX'
+    
+    # TSX Venture
+    if exchange_upper in ('TSXV', 'TSX-V', 'VENTURE'):
+        return 'TSXV'
+    
+    # Return original if we don't recognize it
+    return yahoo_exchange
+
+
 def format_market_cap(value: Optional[int]) -> str:
     """Format market cap as human readable string."""
     if not value:
@@ -142,9 +180,9 @@ def update_stock_from_yahoo(db: Session, ticker: str, yahoo_ticker: Optional[str
         if info.get('longBusinessSummary') and not db_stock.description:
             db_stock.description = info['longBusinessSummary'][:500]  # Truncate
 
-        # Update exchange
+        # Update exchange (normalize to readable name)
         if info.get('exchange'):
-            db_stock.exchange = info['exchange']
+            db_stock.exchange = normalize_exchange(info['exchange'], yahoo_ticker)
 
         db.commit()
         print(f"Updated {ticker}: ${current_price:.2f} ({db_stock.day_change_percent:+.2f}%)")
@@ -211,7 +249,7 @@ def add_stock_from_yahoo(db: Session, ticker: str, yahoo_ticker: Optional[str] =
             ask_size=info.get('askSize'),
             volume=info.get('regularMarketVolume') or info.get('volume'),
             average_volume=info.get('averageVolume'),
-            exchange=info.get('exchange', 'TSX'),
+            exchange=normalize_exchange(info.get('exchange'), yahoo_ticker),
             market_cap=format_market_cap(market_cap),
             market_cap_numeric=market_cap,
             pe_ratio=Decimal(str(round(info['trailingPE'], 2))) if info.get('trailingPE') else None,
