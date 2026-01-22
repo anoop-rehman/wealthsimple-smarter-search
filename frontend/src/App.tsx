@@ -5,7 +5,7 @@ import StockDetail from './pages/StockDetail'
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/wealthsimple-ai-command-center">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/stocks" element={<Stocks />} />

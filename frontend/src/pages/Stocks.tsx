@@ -99,11 +99,11 @@ function Stocks() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const queryFromUrl = searchParams.get('q') || ''
 
-  const [searchQuery, setSearchQuery] = useState(queryFromUrl)
+  const [, _setSearchQuery] = useState(queryFromUrl)
   const [stocks, setStocks] = useState<Stock[]>([])
   const [chartData, setChartData] = useState<ChartData>({})
   const [isLoading, setIsLoading] = useState(false)
-  const [chartsLoading, setChartsLoading] = useState(false)
+  const [_chartsLoading, setChartsLoading] = useState(false)
   const [pageTitle, setPageTitle] = useState(queryFromUrl || 'All Stocks')
 
   // Navbar search state
@@ -245,9 +245,9 @@ function Stocks() {
                     {navIsLoading ? 'Searching...' : `Results (${navResults.length})`}
                   </span>
                   <div className="dropdown-results">
-                    {navResults.map((stock, index) => (
+                    {navResults.map((stock) => (
                       <div
-                        key={index}
+                        key={`nav-${stock.ticker}`}
                         className="dropdown-result-item"
                         onClick={() => {
                           navigate(`/stock/${stock.ticker}`)
@@ -331,7 +331,7 @@ function Stocks() {
             </tr>
           </thead>
           <tbody>
-            {stocks.map((stock, index) => {
+            {stocks.map((stock) => {
               const changePercent = typeof stock.day_change_percent === 'string'
                 ? parseFloat(stock.day_change_percent)
                 : (stock.day_change_percent || 0)
