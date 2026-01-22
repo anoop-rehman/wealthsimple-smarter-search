@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchStocks } from '../services/api'
 import type { Stock } from '../types/stock'
+import Beams from '../components/Beams'
 import './Home.css'
 
 // Debounce hook
@@ -115,6 +116,19 @@ function Home() {
 
   return (
     <div className="home">
+      {/* Animated background beams */}
+      <div className="beams-background">
+        <Beams
+          beamWidth={3}
+          beamHeight={30}
+          beamNumber={20}
+          lightColor="#ffffff"
+          speed={2}
+          noiseIntensity={1.75}
+          scale={0.2}
+          rotation={30}
+        />
+      </div>
       {/* Header */}
       <header className="header">
         <div className="header-left">
