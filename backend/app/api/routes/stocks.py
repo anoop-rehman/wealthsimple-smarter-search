@@ -402,7 +402,7 @@ def seed_real_stocks_endpoint(db: Session = Depends(get_db)):
         ("CAT", None), ("HON", None), ("UNP", None), ("BA", None), ("GE", None), ("RTX", None), ("DE", None),
         ("LMT", None), ("MMM", None),
         ("KO", None), ("MCD", None), ("DIS", None), ("NKE", None), ("LOW", None), ("TGT", None),
-        ("SPGI", None),  # Added 1 more
+        ("SPGI", None), ("AON", None),  # Replaced MMC with AON (Aon plc - similar insurance/consulting)
     ]
     
     # NASDAQ stocks (51 - 1 extra to account for failures, target 50)
@@ -411,7 +411,7 @@ def seed_real_stocks_endpoint(db: Session = Depends(get_db)):
         ("META", None), ("TSLA", None), ("AVGO", None), ("COST", None),
         ("ADBE", None), ("NFLX", None), ("AMD", None), ("QCOM", None), ("INTC", None), ("CSCO", None), ("TXN", None),
         ("INTU", None), ("AMAT", None), ("MU", None),
-        ("CMCSA", None), ("TMUS", None), ("CHTR", None), ("ATVI", None), ("EA", None),
+        ("CMCSA", None), ("TMUS", None), ("CHTR", None), ("EA", None), ("TTD", None),  # Replaced ATVI with TTD (Trade Desk)
         ("PEP", None), ("SBUX", None), ("MDLZ", None), ("MNST", None), ("KDP", None), ("LULU", None), ("ROST", None),
         ("DLTR", None), ("EBAY", None), ("MAR", None),
         ("AMGN", None), ("GILD", None), ("VRTX", None), ("REGN", None), ("MRNA", None), ("BIIB", None), ("ILMN", None),
