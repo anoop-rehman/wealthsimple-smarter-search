@@ -670,3 +670,22 @@
 .current-price [class*="slot"] {
   font-family: sans-serif;
 }
+
+/* Add opacity gradient fade to top and bottom of slot numbers */
+.current-price [class*="slot_wrap"] {
+  position: relative;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+}
