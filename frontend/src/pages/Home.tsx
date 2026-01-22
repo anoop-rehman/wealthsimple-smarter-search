@@ -225,7 +225,7 @@ function Home() {
               <button
                 key={index}
                 className="prompt-example"
-                onClick={() => setSearchQuery(prompt)}
+                onClick={() => navigate(`/stocks?q=${encodeURIComponent(prompt)}`)}
               >
                 {prompt}
               </button>
