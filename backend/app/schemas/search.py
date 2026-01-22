@@ -52,4 +52,14 @@ class SearchResponse(BaseModel):
     results: list[StockResult]
     result_count: int
     generated_sql: Optional[str] = None
+    cache_hit: Optional[bool] = None
     error: Optional[str] = None
+
+
+class CacheStatsResponse(BaseModel):
+    size: int
+    max_size: int
+    hits: int
+    misses: int
+    hit_rate_percent: float
+    ttl_seconds: int

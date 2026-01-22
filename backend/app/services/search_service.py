@@ -3,6 +3,7 @@
 from sqlalchemy.orm import Session
 from app.services.llm_service import generate_sql_from_query
 from app.services.sql_service import execute_sql, SQLValidationError
+from app.services.cache_service import query_cache
 from app.schemas.search import SearchResponse, StockResult
 
 
@@ -19,8 +20,19 @@ def search_stocks(db: Session, query: str, limit: int = 50) -> SearchResponse:
         SearchResponse with results or error
     """
     try:
-        # Generate SQL from natural language
-        generated_sql = generate_sql_from_query(query, limit)
+        # Check cache first
+        cached_sql = query_cache.get(query, limit)
+        cache_hit = cached_sql is not None
+        
+        if cached_sql:
+            generated_sql = cached_sql
+            print(f"[Cache HIT] Query: '{query[:50]}...' -> Using cached SQL")
+        else:
+            # Generate SQL from natural language (LLM call)
+            generated_sql = generate_sql_from_query(query, limit)
+            # Cache the result for future queries
+            query_cache.set(query, limit, generated_sql)
+            print(f"[Cache MISS] Query: '{query[:50]}...' -> Generated and cached SQL")
 
         # Execute the query
         results = execute_sql(db, generated_sql)
@@ -34,7 +46,8 @@ def search_stocks(db: Session, query: str, limit: int = 50) -> SearchResponse:
             success=True,
             results=stock_results,
             result_count=len(stock_results),
-            generated_sql=generated_sql
+            generated_sql=generated_sql,
+            cache_hit=cache_hit
         )
 
     except SQLValidationError as e:
@@ -49,6 +62,7 @@ def search_stocks(db: Session, query: str, limit: int = 50) -> SearchResponse:
                 results=stock_results,
                 result_count=len(stock_results),
                 generated_sql=fallback_sql,
+                cache_hit=False,
                 error=f"Original query failed validation: {str(e)}"
             )
         except Exception as fallback_error:
