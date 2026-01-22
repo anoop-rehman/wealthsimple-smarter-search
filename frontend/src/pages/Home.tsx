@@ -61,6 +61,11 @@ function Home() {
 
   const debouncedQuery = useDebounce(searchQuery, 300)
 
+  // Auto-focus search bar on page load
+  useEffect(() => {
+    searchInputRef.current?.focus()
+  }, [])
+
   // Focus search on "/" key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
