@@ -372,7 +372,7 @@ def seed_real_stocks_endpoint(db: Session = Depends(get_db)):
     """
     from app.services.stock_update_service import add_stock_from_yahoo
     
-    # TSX stocks (51)
+    # TSX stocks (53 - 2 extra to account for failures, target 51)
     TSX_STOCKS = [
         ("RY", "RY.TO"), ("TD", "TD.TO"), ("BNS", "BNS.TO"), ("BMO", "BMO.TO"), ("CM", "CM.TO"), ("NA", "NA.TO"),
         ("MFC", "MFC.TO"), ("SLF", "SLF.TO"), ("IFC", "IFC.TO"), ("POW", "POW.TO"),
@@ -387,9 +387,10 @@ def seed_real_stocks_endpoint(db: Session = Depends(get_db)):
         ("WSP", "WSP.TO"), ("GIB-A", "GIB-A.TO"),
         ("SAP", "SAP.TO"), ("WCN", "WCN.TO"), ("TRI", "TRI.TO"), ("GFL", "GFL.TO"), ("CCL-B", "CCL-B.TO"),
         ("FFH", "FFH.TO"), ("AQN", "AQN.TO"), ("CTC-A", "CTC-A.TO"),
+        ("MG", "MG.TO"), ("KEY", "KEY.TO"),  # Added 2 more
     ]
     
-    # NYSE stocks (50)
+    # NYSE stocks (51 - 1 extra to account for failures, target 50)
     NYSE_STOCKS = [
         ("BRK-B", None), ("V", None), ("UNH", None), ("JNJ", None), ("WMT", None), ("JPM", None), ("MA", None),
         ("XOM", None), ("PG", None), ("HD", None),
@@ -401,9 +402,10 @@ def seed_real_stocks_endpoint(db: Session = Depends(get_db)):
         ("CAT", None), ("HON", None), ("UNP", None), ("BA", None), ("GE", None), ("RTX", None), ("DE", None),
         ("LMT", None), ("MMM", None),
         ("KO", None), ("MCD", None), ("DIS", None), ("NKE", None), ("LOW", None), ("TGT", None),
+        ("SPGI", None),  # Added 1 more
     ]
     
-    # NASDAQ stocks (50)
+    # NASDAQ stocks (51 - 1 extra to account for failures, target 50)
     NASDAQ_STOCKS = [
         ("AAPL", None), ("MSFT", None), ("GOOGL", None), ("GOOG", None), ("AMZN", None), ("NVDA", None),
         ("META", None), ("TSLA", None), ("AVGO", None), ("COST", None),
@@ -415,6 +417,7 @@ def seed_real_stocks_endpoint(db: Session = Depends(get_db)):
         ("AMGN", None), ("GILD", None), ("VRTX", None), ("REGN", None), ("MRNA", None), ("BIIB", None), ("ILMN", None),
         ("DXCM", None), ("ISRG", None), ("IDXX", None),
         ("PYPL", None), ("ADP", None), ("PAYX", None), ("CRWD", None), ("PANW", None),
+        ("ZM", None),  # Added 1 more
     ]
     
     try:
@@ -425,6 +428,7 @@ def seed_real_stocks_endpoint(db: Session = Depends(get_db)):
         success_count = 0
         failure_count = 0
         all_stocks = []
+        failed_stocks = []
         
         # Seed TSX stocks
         print("Seeding TSX stocks...")
@@ -434,6 +438,7 @@ def seed_real_stocks_endpoint(db: Session = Depends(get_db)):
                 all_stocks.append(ticker)
             else:
                 failure_count += 1
+                failed_stocks.append(f"TSX:{ticker}")
                 print(f"Failed to add TSX stock: {ticker}")
         
         # Seed NYSE stocks
@@ -444,6 +449,7 @@ def seed_real_stocks_endpoint(db: Session = Depends(get_db)):
                 all_stocks.append(ticker)
             else:
                 failure_count += 1
+                failed_stocks.append(f"NYSE:{ticker}")
                 print(f"Failed to add NYSE stock: {ticker}")
         
         # Seed NASDAQ stocks
@@ -454,13 +460,22 @@ def seed_real_stocks_endpoint(db: Session = Depends(get_db)):
                 all_stocks.append(ticker)
             else:
                 failure_count += 1
+                failed_stocks.append(f"NASDAQ:{ticker}")
                 print(f"Failed to add NASDAQ stock: {ticker}")
         
         db.commit()
         
+        tsx_count = len([s for s in TSX_STOCKS if s[0] in all_stocks])
+        nyse_count = len([s for s in NYSE_STOCKS if s[0] in all_stocks])
+        nasdaq_count = len([s for s in NASDAQ_STOCKS if s[0] in all_stocks])
+        
+        message = f"Seeded {success_count} stocks successfully ({failure_count} failed). TSX: {tsx_count}, NYSE: {nyse_count}, NASDAQ: {nasdaq_count}"
+        if failed_stocks:
+            message += f". Failed: {', '.join(failed_stocks)}"
+        
         return UpdateResponse(
             success=True,
-            message=f"Seeded {success_count} stocks successfully ({failure_count} failed). TSX: {len([s for s in TSX_STOCKS if s[0] in all_stocks])}, NYSE: {len([s for s in NYSE_STOCKS if s[0] in all_stocks])}, NASDAQ: {len([s for s in NASDAQ_STOCKS if s[0] in all_stocks])}",
+            message=message,
             updated=success_count,
             failed=failure_count
         )
