@@ -4,8 +4,11 @@ import Stocks from './pages/Stocks'
 import StockDetail from './pages/StockDetail'
 
 function App() {
+  // Only use basename in production (GitHub Pages)
+  const basename = import.meta.env.PROD ? '/wealthsimple-ai-command-center' : ''
+  
   return (
-    <BrowserRouter basename="/wealthsimple-ai-command-center">
+    <BrowserRouter basename={basename}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/stocks" element={<Stocks />} />
