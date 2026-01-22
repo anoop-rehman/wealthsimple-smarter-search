@@ -4,13 +4,20 @@ import type { SearchResponse, SearchRequest, ChartResponse, ChartBatchResponse, 
 const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost'
 const API_BASE_URL = import.meta.env.VITE_API_URL || (isDevelopment ? 'http://localhost:8000' : '')
 
+// Log API URL in development for debugging
+if (isDevelopment) {
+  console.log('API_BASE_URL:', API_BASE_URL || 'NOT SET - API calls will fail')
+}
+
 export async function searchStocks(request: SearchRequest): Promise<SearchResponse> {
   if (!API_BASE_URL) {
+    const error = 'API URL not configured. Set VITE_API_URL environment variable.'
+    console.error(error)
     return {
       success: false,
       results: [],
       result_count: 0,
-      error: 'API URL not configured',
+      error,
     }
   }
   try {
