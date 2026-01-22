@@ -461,6 +461,24 @@
   }
 }
 
+/* Area fill under the line */
+.chart-area {
+  opacity: 1;
+}
+
+.chart-area.animate {
+  animation: fadeInArea 0.8s ease-out forwards;
+}
+
+@keyframes fadeInArea {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .chart-line.positive {
   stroke: #10b981;
 }

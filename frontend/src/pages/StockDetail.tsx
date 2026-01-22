@@ -304,9 +304,13 @@ function StockDetail() {
     
     const isPositive = allPrices[allPrices.length - 1] >= allPrices[0]
     const openY = padding + ((max - allPrices[0]) / range) * (height - padding * 2)
-    return { path: pathD, isPositive, openY, points, min, max, range }
+    
+    // Create area path (closed shape for gradient fill)
+    const areaPathD = pathD + ` L${width},${height} L0,${height} Z`
+    
+    return { path: pathD, areaPath: areaPathD, isPositive, openY, points, min, max, range }
   }, [chartData, selectedPeriod, generateSmoothPath, downsampleData])
-  const { path: chartPath, isPositive, openY, points: chartPoints } = generateChartData()
+  const { path: chartPath, areaPath: chartAreaPath, isPositive, openY, points: chartPoints } = generateChartData()
   // Handle mouse move on chart
   const handleChartMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!chartRef.current || !chartData?.data_points || chartData.data_points.length < 2) return
@@ -762,6 +766,17 @@ function StockDetail() {
                   </div>
                 )}
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="price-chart">
+                  {/* Gradient definitions for area fill */}
+                  <defs>
+                    <linearGradient id="areaGradientPositive" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="areaGradientNegative" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#e07862" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#e07862" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
                   {/* Opening price reference line */}
                   <line
                     x1="0"
@@ -829,12 +844,22 @@ function StockDetail() {
                       />
                     </>
                   ) : (
-                    <path
-                      key={`chart-${selectedPeriod}`}
-                      d={chartPath}
-                      className={`chart-line ${shouldAnimateChart ? 'animate' : ''} ${isPositive ? 'positive' : 'negative'}`}
-                      fill="none"
-                    />
+                    <>
+                      {/* Area fill with gradient */}
+                      <path
+                        key={`area-${selectedPeriod}`}
+                        d={chartAreaPath}
+                        fill={isPositive ? 'url(#areaGradientPositive)' : 'url(#areaGradientNegative)'}
+                        className={shouldAnimateChart ? 'chart-area animate' : 'chart-area'}
+                      />
+                      {/* Chart line */}
+                      <path
+                        key={`chart-${selectedPeriod}`}
+                        d={chartPath}
+                        className={`chart-line ${shouldAnimateChart ? 'animate' : ''} ${isPositive ? 'positive' : 'negative'}`}
+                        fill="none"
+                      />
+                    </>
                   )}
                 </svg>
               </>
