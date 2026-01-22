@@ -108,6 +108,7 @@ function StockDetail() {
   const [animationEndInt, setAnimationEndInt] = useState<string>('')
   const [animationStartDecimal, setAnimationStartDecimal] = useState<string>('')
   const [animationEndDecimal, setAnimationEndDecimal] = useState<string>('')
+  const [hasInitialAnimation, setHasInitialAnimation] = useState(false)
   const lastHoveredPriceRef = useRef<number | null>(null)
   const isAnimatingRef = useRef(false)
   const slotCounterRef = useRef<SlotCounterRef>(null)
@@ -543,29 +544,35 @@ function StockDetail() {
         {/* Price Section */}
         <div className="price-section">
           <div className="current-price-row">
-            {isSlotAnimating ? (
+            {isSlotAnimating || (stock?.current_price && !hasInitialAnimation) ? (
               <div className="current-price">
                 <span className="price-char">$</span>
                 <SlotCounter
                   ref={slotCounterRef}
-                  startValue={animationStartInt}
-                  value={animationEndInt}
+                  startValue={isSlotAnimating ? animationStartInt : '0'}
+                  value={isSlotAnimating ? animationEndInt : (stock?.current_price ? Math.floor(stock.current_price).toString() : '0')}
                   sequentialAnimationMode
                   direction="bottom-up"
                   autoAnimationStart={false}
+                  animateOnVisible={!isSlotAnimating}
                   onAnimationEnd={() => {
-                    isAnimatingRef.current = false
-                    setIsSlotAnimating(false)
+                    if (isSlotAnimating) {
+                      isAnimatingRef.current = false
+                      setIsSlotAnimating(false)
+                    } else {
+                      setHasInitialAnimation(true)
+                    }
                   }}
                 />
                 <span className="price-char">.</span>
                 <SlotCounter
                   ref={decimalSlotCounterRef}
-                  startValue={animationStartDecimal}
-                  value={animationEndDecimal}
+                  startValue={isSlotAnimating ? animationStartDecimal : '00'}
+                  value={isSlotAnimating ? animationEndDecimal : (stock?.current_price ? stock.current_price.toFixed(2).split('.')[1] : '00')}
                   sequentialAnimationMode
                   direction="bottom-up"
                   autoAnimationStart={false}
+                  animateOnVisible={!isSlotAnimating}
                 />
               </div>
             ) : (
