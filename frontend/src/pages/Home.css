@@ -81,6 +81,27 @@
   justify-content: center;
 }
 
+/* Hero Title */
+.hero-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.hero-intro {
+  font-size: 16px;
+  font-weight: 500;
+  color: #888888;
+  margin-bottom: 8px;
+}
+
+.hero-main {
+  font-size: 48px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
 .home-search-bar {
   display: flex;
   align-items: center;
@@ -247,4 +268,31 @@
 
 .view-all-link .arrow {
   margin-left: 4px;
+}
+
+/* Prompt Examples */
+.prompt-examples {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+  max-width: 700px;
+}
+
+.prompt-example {
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 20px;
+  padding: 10px 18px;
+  color: #888888;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.prompt-example:hover {
+  background-color: #333333;
+  border-color: #4a4a4a;
+  color: #ffffff;
 }

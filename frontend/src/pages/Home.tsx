@@ -43,6 +43,14 @@ function getLogoText(ticker: string): string {
   return ticker.length <= 2 ? ticker : ticker.slice(0, 2)
 }
 
+const EXAMPLE_PROMPTS = [
+  'Healthcare stocks with upcoming earnings',
+  'Tech stocks under $100',
+  'Top gaining stocks today',
+  'Energy sector with high volume',
+  'Canadian bank stocks',
+]
+
 function Home() {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
@@ -114,6 +122,12 @@ function Home() {
 
       {/* Centered Search */}
       <div className="home-content">
+        {/* Title */}
+        <div className="hero-title">
+          <span className="hero-intro">Introducing</span>
+          <span className="hero-main">Smarter Search</span>
+        </div>
+
         <div className="search-container">
           <div className={`home-search-bar ${showDropdown ? 'has-results' : ''}`}>
             <span className="home-search-icon">&#x1F50D;</span>
@@ -171,6 +185,21 @@ function Home() {
             </div>
           )}
         </div>
+
+        {/* Prompt Examples */}
+        {!showDropdown && (
+          <div className="prompt-examples">
+            {EXAMPLE_PROMPTS.map((prompt, index) => (
+              <button
+                key={index}
+                className="prompt-example"
+                onClick={() => setSearchQuery(prompt)}
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
