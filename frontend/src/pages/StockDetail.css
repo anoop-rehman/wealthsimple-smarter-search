@@ -653,16 +653,20 @@
 }
 
 /* Price digits to match SlotCounter positioning */
-/* Using system monospace fonts that match the system sans-serif fonts */
 .price-digit,
 .price-char {
   display: inline-block;
   text-align: center;
   vertical-align: middle;
-  font-family: ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', Menlo, Consolas, monospace;
 }
 
-/* Apply monospace to SlotCounter digits as well */
+/* Price digits use sans-serif */
+.price-digit,
+.price-char {
+  font-family: sans-serif;
+}
+
+/* SlotCounter digits also use sans-serif */
 .current-price [class*="slot"] {
-  font-family: ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', Menlo, Consolas, monospace;
+  font-family: sans-serif;
 }
