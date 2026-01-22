@@ -376,6 +376,8 @@
   color: #ffffff;
 }
 
+/* Slot Counter Styling - let it inherit font-size from parent */
+
 .currency {
   font-size: 16px;
   color: #888;
@@ -648,4 +650,19 @@
     padding: 6px 12px;
     font-size: 12px;
   }
+}
+
+/* Price digits to match SlotCounter positioning */
+/* Using system monospace fonts that match the system sans-serif fonts */
+.price-digit,
+.price-char {
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+  font-family: ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', Menlo, Consolas, monospace;
+}
+
+/* Apply monospace to SlotCounter digits as well */
+.current-price [class*="slot"] {
+  font-family: ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', Menlo, Consolas, monospace;
 }

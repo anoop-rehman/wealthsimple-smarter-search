@@ -2,11 +2,11 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getStockDetail, getStockChart, searchStocks } from '../services/api'
 import type { Stock, ChartResponse } from '../types/stock'
+import SlotCounter from 'react-slot-counter'
+import type { SlotCounterRef } from 'react-slot-counter'
 import './StockDetail.css'
-
 const PERIODS = ['1D', '1W', '1M', '3M', '1Y', '5Y'] as const
 type Period = typeof PERIODS[number]
-
 // Map our periods to API periods
 const PERIOD_MAP: Record<Period, string> = {
   '1D': '1D',
@@ -16,26 +16,12 @@ const PERIOD_MAP: Record<Period, string> = {
   '1Y': '1Y',
   '5Y': '5Y',
 }
-
 interface HoverData {
   index: number
   price: number
   timestamp: string
   x: number
   y: number
-}
-
-interface DragSelection {
-  startIndex: number
-  endIndex: number
-  startPrice: number
-  endPrice: number
-  startTimestamp: string
-  endTimestamp: string
-  startX: number
-  endX: number
-  startY: number
-  endY: number
 }
 
 // Color palette for stock logos based on sector
@@ -57,27 +43,22 @@ const sectorColors: Record<string, string> = {
   Utilities: '#84cc16',
   'Real Estate': '#0ea5e9',
 }
-
 function getLogoColor(sector?: string): string {
   return sectorColors[sector || ''] || '#6366f1'
 }
-
 function getLogoText(ticker: string): string {
   return ticker.length <= 2 ? ticker : ticker.slice(0, 2)
 }
-
 function formatPrice(price?: number | null): string {
   if (price === undefined || price === null) return '-'
   return `$${price.toFixed(2)}`
 }
-
 function formatChange(amount?: number | null, percent?: number | null): string {
   if (amount === undefined || amount === null) return '-'
   const sign = amount >= 0 ? '+' : ''
   const percentStr = percent !== undefined && percent !== null ? ` (${sign}${percent.toFixed(2)}%)` : ''
   return `${sign}$${Math.abs(amount).toFixed(2)}${percentStr}`
 }
-
 function formatVolume(volume?: number | null): string {
   if (volume === undefined || volume === null) return '-'
   if (volume >= 1_000_000_000) return `${(volume / 1_000_000_000).toFixed(2)}B`
@@ -85,12 +66,10 @@ function formatVolume(volume?: number | null): string {
   if (volume >= 1_000) return `${(volume / 1_000).toFixed(2)}K`
   return volume.toString()
 }
-
 function getCurrency(exchange?: string): string {
   if (exchange === 'TOR' || exchange === 'TSX') return 'CAD'
   return 'USD'
 }
-
 function formatTimestamp(timestamp: string, period: Period): string {
   const date = new Date(timestamp)
   if (period === '1D' || period === '1W') {
@@ -110,13 +89,11 @@ function formatTimestamp(timestamp: string, period: Period): string {
     year: 'numeric'
   })
 }
-
 function StockDetail() {
   const { ticker } = useParams<{ ticker: string }>()
   const navigate = useNavigate()
   const chartRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
-
   const [stock, setStock] = useState<Stock | null>(null)
   const [chartData, setChartData] = useState<ChartResponse | null>(null)
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('1D')
@@ -125,12 +102,20 @@ function StockDetail() {
   const [hoverData, setHoverData] = useState<HoverData | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState<HoverData | null>(null)
-
+  // Animation state - only used when animating from hover price to current price
+  const [isSlotAnimating, setIsSlotAnimating] = useState(false)
+  const [animationStartInt, setAnimationStartInt] = useState<string>('')
+  const [animationEndInt, setAnimationEndInt] = useState<string>('')
+  const [animationStartDecimal, setAnimationStartDecimal] = useState<string>('')
+  const [animationEndDecimal, setAnimationEndDecimal] = useState<string>('')
+  const lastHoveredPriceRef = useRef<number | null>(null)
+  const isAnimatingRef = useRef(false)
+  const slotCounterRef = useRef<SlotCounterRef>(null)
+  const decimalSlotCounterRef = useRef<SlotCounterRef>(null)
   // Navbar search state
   const [navSearchQuery, setNavSearchQuery] = useState('')
   const [navResults, setNavResults] = useState<Stock[]>([])
   const [navIsLoading, setNavIsLoading] = useState(false)
-
   // Focus search on "/" key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -142,14 +127,12 @@ function StockDetail() {
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
-
   // Navbar search with debounce
   useEffect(() => {
     if (!navSearchQuery.trim()) {
       setNavResults([])
       return
     }
-
     const timer = setTimeout(async () => {
       setNavIsLoading(true)
       try {
@@ -163,95 +146,84 @@ function StockDetail() {
         setNavIsLoading(false)
       }
     }, 300)
-
     return () => clearTimeout(timer)
   }, [navSearchQuery])
-
   const handleNavKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && navSearchQuery.trim()) {
       navigate(`/stocks?q=${encodeURIComponent(navSearchQuery)}`)
       setNavSearchQuery('')
     }
   }
-
   const showNavDropdown = navSearchQuery.length > 0
-
   // Fetch stock details
   useEffect(() => {
     if (!ticker) return
-
     const fetchStock = async () => {
       setIsLoading(true)
       const data = await getStockDetail(ticker)
       setStock(data)
       setIsLoading(false)
     }
-
     fetchStock()
   }, [ticker])
-
   // Fetch chart data when period changes
   useEffect(() => {
     if (!ticker) return
-
     const fetchChart = async () => {
       setChartLoading(true)
       const data = await getStockChart(ticker, PERIOD_MAP[selectedPeriod])
       setChartData(data)
       setChartLoading(false)
     }
-
     fetchChart()
   }, [ticker, selectedPeriod])
-
-  
+  // Trigger animation when SlotCounter is ready
+  useEffect(() => {
+    if (isSlotAnimating && animationStartInt && animationEndInt && slotCounterRef.current && decimalSlotCounterRef.current) {
+      // Small delay to ensure component is fully rendered
+      const timer = setTimeout(() => {
+        slotCounterRef.current?.startAnimation()
+        decimalSlotCounterRef.current?.startAnimation()
+      }, 50)
+      return () => clearTimeout(timer)
+    }
+  }, [isSlotAnimating]) // eslint-disable-line react-hooks/exhaustive-deps
   // Generate SVG path and points for chart
   const generateChartData = useCallback(() => {
     if (!chartData?.data_points || chartData.data_points.length < 2) {
       return { path: '', isPositive: true, openY: 50, points: [], min: 0, max: 0, range: 1 }
     }
-
     const prices = chartData.data_points.map(p => p.price)
     const width = 100
     const height = 100
     const padding = 5
-
     const min = Math.min(...prices)
     const max = Math.max(...prices)
     const range = max - min || 1
-
     const points = prices.map((price, i) => {
       const x = (i / (prices.length - 1)) * width
       const y = padding + ((max - price) / range) * (height - padding * 2)
       return { x, y, price }
     })
-
     const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ')
     const isPositive = prices[prices.length - 1] >= prices[0]
     const openY = padding + ((max - prices[0]) / range) * (height - padding * 2)
-
     return { path: pathD, isPositive, openY, points, min, max, range }
   }, [chartData])
-
   const { path: chartPath, isPositive, openY, points: chartPoints } = generateChartData()
-
   // Handle mouse move on chart
   const handleChartMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!chartRef.current || !chartData?.data_points || chartData.data_points.length < 2) return
-
     const rect = chartRef.current.getBoundingClientRect()
     const x = e.clientX - rect.left
     const relativeX = x / rect.width
-
     // Find the closest data point
     const index = Math.min(
       Math.max(0, Math.round(relativeX * (chartData.data_points.length - 1))),
       chartData.data_points.length - 1
     )
-
     const dataPoint = chartData.data_points[index]
     const point = chartPoints[index]
-
     if (dataPoint && point) {
       setHoverData({
         index,
@@ -260,34 +232,53 @@ function StockDetail() {
         x: point.x,
         y: point.y
       })
+      // Store hovered price for animation when leaving
+      if (!isAnimatingRef.current) {
+        lastHoveredPriceRef.current = dataPoint.price
+      }
     }
   }, [chartData, chartPoints])
-
   const handleChartMouseLeave = useCallback(() => {
+    const lastPrice = lastHoveredPriceRef.current
+    // Trigger animation if we have a last hovered price and it's different from current
+    if (lastPrice !== null && stock?.current_price && !isAnimatingRef.current) {
+      const startInt = Math.floor(lastPrice).toString()
+      const endInt = Math.floor(stock.current_price).toString()
+      const startDecimal = lastPrice.toFixed(2).split('.')[1]
+      const endDecimal = stock.current_price.toFixed(2).split('.')[1]
+      // Only animate if values are different
+      if (startInt !== endInt || startDecimal !== endDecimal) {
+        // Set animation values
+        setAnimationStartInt(startInt)
+        setAnimationEndInt(endInt)
+        setAnimationStartDecimal(startDecimal)
+        setAnimationEndDecimal(endDecimal)
+        // Mark as animating
+        isAnimatingRef.current = true
+        setIsSlotAnimating(true)
+      }
+    }
+    // Clear state
     setHoverData(null)
+    lastHoveredPriceRef.current = null
     if (isDragging) {
       setIsDragging(false)
       setDragStart(null)
     }
-  }, [isDragging])
-
+  }, [isDragging, stock?.current_price])
   // Handle mouse down to start drag selection
   const handleChartMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault()
     if (!chartRef.current || !chartData?.data_points || chartData.data_points.length < 2) return
-
     const rect = chartRef.current.getBoundingClientRect()
     const x = e.clientX - rect.left
     const relativeX = x / rect.width
-
     const index = Math.min(
       Math.max(0, Math.round(relativeX * (chartData.data_points.length - 1))),
       chartData.data_points.length - 1
     )
-
     const dataPoint = chartData.data_points[index]
     const point = chartPoints[index]
-
     if (dataPoint && point) {
       setIsDragging(true)
       setDragStart({
@@ -299,35 +290,29 @@ function StockDetail() {
       })
     }
   }, [chartData, chartPoints])
-
   // Global mouseup listener - clear drag state on release (selection disappears)
   useEffect(() => {
     if (!isDragging) return
-
     const handleGlobalMouseUp = () => {
       setIsDragging(false)
       setDragStart(null)
     }
-
     document.addEventListener('mouseup', handleGlobalMouseUp)
     return () => {
       document.removeEventListener('mouseup', handleGlobalMouseUp)
     }
   }, [isDragging])
-
   // Compute active selection - only exists while dragging
   const activeSelection = useMemo(() => {
     if (!isDragging || !dragStart || !hoverData || Math.abs(dragStart.index - hoverData.index) < 1) {
       return null
     }
-
     const startIdx = Math.min(dragStart.index, hoverData.index)
     const endIdx = Math.max(dragStart.index, hoverData.index)
     const startPoint = chartPoints[startIdx]
     const endPoint = chartPoints[endIdx]
     const startData = chartData?.data_points?.[startIdx]
     const endData = chartData?.data_points?.[endIdx]
-
     if (startPoint && endPoint && startData && endData) {
       return {
         startIndex: startIdx,
@@ -344,82 +329,63 @@ function StockDetail() {
     }
     return null
   }, [isDragging, dragStart, hoverData, chartPoints, chartData])
-
   // Calculate displayed price and change
   // If drag selection exists, use selection range; if hovering, use hover point; else use current price
   const displayPrice = activeSelection
     ? activeSelection.endPrice
     : (hoverData?.price ?? stock?.current_price)
-
   const baselinePrice = activeSelection
     ? activeSelection.startPrice
     : (chartData?.data_points?.[0]?.price ?? stock?.closing_price ?? 0)
-
   const displayChangeAmount = displayPrice && baselinePrice ? displayPrice - baselinePrice : stock?.day_change_amount
   const displayChangePercent = displayPrice && baselinePrice && baselinePrice !== 0
     ? ((displayPrice - baselinePrice) / baselinePrice) * 100
     : stock?.day_change_percent
-
   // Determine if selection/hover is positive
   const selectionIsPositive = activeSelection
     ? activeSelection.endPrice >= activeSelection.startPrice
     : (hoverData ? (hoverData.price >= baselinePrice) : isPositive)
-
   // Generate paths for before/after cursor
   const generateSplitPaths = useCallback(() => {
     if (!hoverData || chartPoints.length < 2) {
       return { beforePath: chartPath, afterPath: '' }
     }
-
     const beforePoints = chartPoints.slice(0, hoverData.index + 1)
     const afterPoints = chartPoints.slice(hoverData.index)
-
     const beforePath = beforePoints.map((p, i) =>
       `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`
     ).join(' ')
-
     const afterPath = afterPoints.map((p, i) =>
       `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`
     ).join(' ')
-
     return { beforePath, afterPath }
   }, [hoverData, chartPoints, chartPath])
-
   const { beforePath, afterPath } = generateSplitPaths()
-
   // Generate paths for selection visualization
   const generateSelectionPaths = useCallback(() => {
     if (!activeSelection || chartPoints.length < 2) {
       return { beforeSelectionPath: '', selectionPath: '', afterSelectionPath: '' }
     }
-
     const beforePoints = chartPoints.slice(0, activeSelection.startIndex + 1)
     const selectionPoints = chartPoints.slice(activeSelection.startIndex, activeSelection.endIndex + 1)
     const afterPoints = chartPoints.slice(activeSelection.endIndex)
-
     const beforeSelectionPath = beforePoints.map((p, i) =>
       `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`
     ).join(' ')
-
     const selectionPath = selectionPoints.map((p, i) =>
       `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`
     ).join(' ')
-
     const afterSelectionPath = afterPoints.map((p, i) =>
       `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`
     ).join(' ')
-
     return { beforeSelectionPath, selectionPath, afterSelectionPath }
   }, [activeSelection, chartPoints])
-
   const { beforeSelectionPath, selectionPath, afterSelectionPath } = generateSelectionPaths()
-
   // Format timestamp range for selection
   const formatSelectionTimestamp = () => {
     if (!activeSelection) return ''
     const startDate = new Date(activeSelection.startTimestamp)
     const endDate = new Date(activeSelection.endTimestamp)
-
     const startStr = startDate.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -428,17 +394,14 @@ function StockDetail() {
       minute: '2-digit',
       hour12: true
     })
-
     const endStr = endDate.toLocaleString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
       timeZoneName: 'short'
     })
-
     return `${startStr} - ${endStr}`
   }
-
   if (isLoading) {
     return (
       <div className="stock-detail-page">
@@ -446,7 +409,6 @@ function StockDetail() {
       </div>
     )
   }
-
   if (!stock) {
     return (
       <div className="stock-detail-page">
@@ -454,9 +416,7 @@ function StockDetail() {
       </div>
     )
   }
-
   const changeIsPositive = activeSelection ? selectionIsPositive : (displayChangePercent || 0) >= 0
-
   return (
     <div className="stock-detail-page">
       {/* Header */}
@@ -489,7 +449,6 @@ function StockDetail() {
               />
               {!showNavDropdown && <span className="search-shortcut">/</span>}
             </div>
-
             {showNavDropdown && (
               <div className="navbar-search-dropdown">
                 <div className="dropdown-section">
@@ -563,7 +522,6 @@ function StockDetail() {
           </button>
         </div>
       </header>
-
       {/* Main Content */}
       <main className="detail-content">
         {/* Stock Header */}
@@ -582,11 +540,50 @@ function StockDetail() {
             <span className="company-name">{stock.stock_name}</span>
           </div>
         </div>
-
         {/* Price Section */}
         <div className="price-section">
           <div className="current-price-row">
-            <span className="current-price">{formatPrice(displayPrice)}</span>
+            {isSlotAnimating ? (
+              <div className="current-price">
+                <span className="price-char">$</span>
+                <SlotCounter
+                  ref={slotCounterRef}
+                  startValue={animationStartInt}
+                  value={animationEndInt}
+                  sequentialAnimationMode
+                  direction="bottom-up"
+                  autoAnimationStart={false}
+                  onAnimationEnd={() => {
+                    isAnimatingRef.current = false
+                    setIsSlotAnimating(false)
+                  }}
+                />
+                <span className="price-char">.</span>
+                <SlotCounter
+                  ref={decimalSlotCounterRef}
+                  startValue={animationStartDecimal}
+                  value={animationEndDecimal}
+                  sequentialAnimationMode
+                  direction="bottom-up"
+                  autoAnimationStart={false}
+                />
+              </div>
+            ) : (
+              <div className="current-price">
+                <span className="price-char">$</span>
+                {displayPrice !== undefined && displayPrice !== null && (
+                  <>
+                    {Math.floor(displayPrice).toString().split('').map((digit, i) => (
+                      <span key={`int-${i}`} className="price-digit">{digit}</span>
+                    ))}
+                    <span className="price-char">.</span>
+                    {displayPrice.toFixed(2).split('.')[1].split('').map((digit, i) => (
+                      <span key={`dec-${i}`} className="price-digit">{digit}</span>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
             <span className="currency">{getCurrency(stock.exchange)}</span>
           </div>
           <div className={`price-change ${changeIsPositive ? 'positive' : 'negative'}`}>
@@ -595,7 +592,6 @@ function StockDetail() {
             {!hoverData && <span className="change-label"> at close</span>}
           </div>
         </div>
-
         {/* Chart Section */}
         <div className="chart-section">
           <div
@@ -625,7 +621,6 @@ function StockDetail() {
                     {formatTimestamp(hoverData.timestamp, selectedPeriod)}
                   </div>
                 )}
-
                 {/* Selection dots */}
                 {activeSelection && (
                   <>
@@ -645,7 +640,6 @@ function StockDetail() {
                     />
                   </>
                 )}
-
                 {/* Cursor dot - rendered as HTML for proper circle shape (only when not in selection mode) */}
                 {hoverData && !activeSelection && (
                   <div
@@ -656,7 +650,6 @@ function StockDetail() {
                     }}
                   />
                 )}
-
                 {/* Price label on right - only shows on hover/selection, positioned at baseline */}
                 {(hoverData || activeSelection) && (
                   <div
@@ -666,7 +659,6 @@ function StockDetail() {
                     {formatPrice(stock.closing_price)}
                   </div>
                 )}
-
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="price-chart">
                   {/* Opening price reference line */}
                   <line
@@ -676,7 +668,6 @@ function StockDetail() {
                     y2={openY}
                     className="reference-line"
                   />
-
                   {/* Chart rendering based on mode: selection, hover, or default */}
                   {activeSelection ? (
                     <>
@@ -746,7 +737,6 @@ function StockDetail() {
               </>
             )}
           </div>
-
           {/* Period Selector */}
           <div className="period-selector">
             {PERIODS.map(period => (
@@ -760,7 +750,6 @@ function StockDetail() {
             ))}
           </div>
         </div>
-
         {/* Market Details */}
         <section className="details-section">
           <h2 className="section-title">Market details</h2>
@@ -787,7 +776,6 @@ function StockDetail() {
                 {formatPrice(stock.current_price)} x 100
               </span>
             </div>
-
             <div className="detail-item">
               <span className="detail-label">High</span>
               <span className="detail-value">{formatPrice(stock.market_high)}</span>
@@ -804,7 +792,6 @@ function StockDetail() {
               <span className="detail-label">Average volume</span>
               <span className="detail-value">{formatVolume(stock.average_volume)}</span>
             </div>
-
             <div className="detail-item">
               <span className="detail-label">52 week high</span>
               <span className="detail-value">{formatPrice(stock.week_52_high)}</span>
@@ -823,7 +810,6 @@ function StockDetail() {
             </div>
           </div>
         </section>
-
         {/* Financials */}
         <section className="details-section">
           <h2 className="section-title">Financials</h2>
@@ -842,7 +828,6 @@ function StockDetail() {
             </div>
           </div>
         </section>
-
         {/* About Section */}
         <section className="details-section">
           <h2 className="section-title">About {stock.ticker}</h2>
@@ -854,5 +839,4 @@ function StockDetail() {
     </div>
   )
 }
-
 export default StockDetail
