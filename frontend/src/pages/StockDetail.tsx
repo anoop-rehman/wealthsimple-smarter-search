@@ -115,6 +115,7 @@ function StockDetail() {
   const { ticker } = useParams<{ ticker: string }>()
   const navigate = useNavigate()
   const chartRef = useRef<HTMLDivElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const [stock, setStock] = useState<Stock | null>(null)
   const [chartData, setChartData] = useState<ChartResponse | null>(null)
@@ -124,6 +125,18 @@ function StockDetail() {
   const [hoverData, setHoverData] = useState<HoverData | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState<HoverData | null>(null)
+
+  // Focus search on "/" key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '/' && document.activeElement !== searchInputRef.current) {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // Fetch stock details
   useEffect(() => {
@@ -432,6 +445,7 @@ function StockDetail() {
               <path d="M21 21l-4.35-4.35"/>
             </svg>
             <input
+              ref={searchInputRef}
               type="text"
               className="search-input"
               placeholder="Search name or symbol"

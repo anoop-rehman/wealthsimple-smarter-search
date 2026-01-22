@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { searchStocks, getChartsBatch } from '../services/api'
 import type { Stock } from '../types/stock'
@@ -96,6 +96,7 @@ function MiniChart({ prices, positive }: { prices?: number[], positive: boolean 
 function Stocks() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const queryFromUrl = searchParams.get('q') || ''
 
   const [searchQuery, setSearchQuery] = useState(queryFromUrl)
@@ -109,6 +110,18 @@ function Stocks() {
   const [navSearchQuery, setNavSearchQuery] = useState('')
   const [navResults, setNavResults] = useState<Stock[]>([])
   const [navIsLoading, setNavIsLoading] = useState(false)
+
+  // Focus search on "/" key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '/' && document.activeElement !== searchInputRef.current) {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const fetchStocks = useCallback(async (query: string) => {
     setIsLoading(true)
@@ -214,6 +227,7 @@ function Stocks() {
                 <path d="M21 21l-4.35-4.35"/>
               </svg>
               <input
+                ref={searchInputRef}
                 type="text"
                 className="search-input"
                 placeholder="Search stocks..."

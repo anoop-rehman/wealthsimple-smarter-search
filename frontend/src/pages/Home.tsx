@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchStocks } from '../services/api'
 import type { Stock } from '../types/stock'
@@ -53,11 +53,24 @@ const EXAMPLE_PROMPTS = [
 
 function Home() {
   const navigate = useNavigate()
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [results, setResults] = useState<Stock[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   const debouncedQuery = useDebounce(searchQuery, 300)
+
+  // Focus search on "/" key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '/' && document.activeElement !== searchInputRef.current) {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const fetchResults = useCallback(async (query: string) => {
     if (!query.trim()) {
@@ -150,6 +163,7 @@ function Home() {
               <path d="M21 21l-4.35-4.35"/>
             </svg>
             <input
+              ref={searchInputRef}
               type="text"
               className="home-search-input"
               placeholder="Search stocks using natural language..."
