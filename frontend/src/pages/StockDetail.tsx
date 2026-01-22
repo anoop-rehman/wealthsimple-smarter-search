@@ -257,8 +257,8 @@ function StockDetail() {
         setAnimationEndDecimal(endDecimal)
         // Mark as animating
         isAnimatingRef.current = true
-        setIsSlotAnimating(true)
-      }
+          setIsSlotAnimating(true)
+    }
     }
     // Clear state
     setHoverData(null)
@@ -559,7 +559,7 @@ function StockDetail() {
                   onAnimationEnd={() => {
                     if (isSlotAnimating) {
                       isAnimatingRef.current = false
-                      setIsSlotAnimating(false)
+                    setIsSlotAnimating(false)
                     } else {
                       setHasInitialAnimation(true)
                     }
@@ -840,7 +840,7 @@ function StockDetail() {
         <section className="details-section">
           <h2 className="section-title">About {stock.ticker}</h2>
           <div className="about-text-container">
-            <p className="about-text">
+          <p className="about-text">
               {(() => {
                 const description = stock.description || `${stock.stock_name} is a publicly traded company listed on the ${stock.exchange || 'stock'} exchange.`
                 const maxLength = 500
@@ -863,7 +863,7 @@ function StockDetail() {
                   </>
                 )
               })()}
-            </p>
+          </p>
             {stock.description && stock.description.length > 500 && showFullDescription && (
               <button
                 className="show-more-link"

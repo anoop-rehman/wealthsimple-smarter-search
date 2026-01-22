@@ -152,29 +152,58 @@ function Stocks() {
     fetchStocks(queryFromUrl)
   }, [queryFromUrl, fetchStocks])
 
-  // Fetch chart data when stocks change
+  // Fetch chart data progressively: first 20 immediately, then rest in batches
   useEffect(() => {
     if (stocks.length === 0) {
       setChartData({})
       return
     }
 
-    const fetchCharts = async () => {
+    let cancelled = false
+
+    const fetchChartsProgressively = async () => {
       setChartsLoading(true)
+      const tickers = stocks.map(s => s.ticker)
+      const BATCH_SIZE = 20
+      
       try {
-        const tickers = stocks.map(s => s.ticker)
-        const response = await getChartsBatch(tickers, '1D')
-        if (response?.charts) {
-          setChartData(response.charts)
+        // Fetch first batch immediately (visible on page load)
+        const firstBatch = tickers.slice(0, BATCH_SIZE)
+        const firstResponse = await getChartsBatch(firstBatch, '1D')
+        
+        if (cancelled) return
+        
+        if (firstResponse?.charts) {
+          setChartData(prev => ({ ...prev, ...firstResponse.charts }))
+        }
+        
+        // Fetch remaining batches progressively
+        for (let i = BATCH_SIZE; i < tickers.length; i += BATCH_SIZE) {
+          if (cancelled) return
+          
+          const batch = tickers.slice(i, i + BATCH_SIZE)
+          const response = await getChartsBatch(batch, '1D')
+          
+          if (cancelled) return
+          
+          if (response?.charts) {
+            setChartData(prev => ({ ...prev, ...response.charts }))
+          }
         }
       } catch (error) {
         console.error('Error fetching charts:', error)
       } finally {
-        setChartsLoading(false)
+        if (!cancelled) {
+          setChartsLoading(false)
+        }
       }
     }
 
-    fetchCharts()
+    fetchChartsProgressively()
+    
+    return () => {
+      cancelled = true
+    }
   }, [stocks])
 
   // Navbar search with debounce
