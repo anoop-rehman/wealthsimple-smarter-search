@@ -36,7 +36,7 @@
   line-height: 1.5;
   font-weight: 400;
   color: #ffffff;
-  background-color: #1a1a1a;
+  background-color: rgb(24, 23, 22);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -45,7 +45,7 @@
 
 body {
   min-height: 100vh;
-  background-color: #1a1a1a;
+  background-color: rgb(24, 23, 22);
 }
 
 #root {

@@ -34,7 +34,7 @@
 
 .stocks-page {
   min-height: 100vh;
-  background-color: #1a1a1a;
+  background-color: rgb(24, 23, 22);
 }
 
 /* Header / Navigation */
@@ -363,7 +363,7 @@
   top: 100%;
   left: 0;
   right: 0;
-  background-color: #1a1a1a;
+  background-color: rgb(24, 23, 22);
   border: 1px solid #3a3a3a;
   border-top: none;
   border-radius: 0 0 16px 16px;
