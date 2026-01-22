@@ -593,10 +593,31 @@
   }
   
   /* About Section */
+  .about-text-container {
+    position: relative;
+  }
+  
   .about-text {
     font-size: 14px;
     line-height: 1.6;
     color: #ccc;
+    margin: 0;
+  }
+  
+  .show-more-link {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+    color: #ccc;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: inherit;
+  }
+  
+  .show-more-link:hover {
+    color: #fff;
   }
   
   /* Loading and Error States */

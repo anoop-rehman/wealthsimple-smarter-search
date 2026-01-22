@@ -178,7 +178,7 @@ def update_stock_from_yahoo(db: Session, ticker: str, yahoo_ticker: Optional[str
         if info.get('industry') and not db_stock.industry:
             db_stock.industry = info['industry']
         if info.get('longBusinessSummary') and not db_stock.description:
-            db_stock.description = info['longBusinessSummary'][:500]  # Truncate
+            db_stock.description = info['longBusinessSummary']
 
         # Update exchange (normalize to readable name)
         if info.get('exchange'):
@@ -231,7 +231,7 @@ def add_stock_from_yahoo(db: Session, ticker: str, yahoo_ticker: Optional[str] =
         new_stock = Stock(
             ticker=ticker,
             stock_name=info.get('longName') or info.get('shortName') or ticker,
-            description=info.get('longBusinessSummary', '')[:500] if info.get('longBusinessSummary') else f"{ticker} stock",
+            description=info.get('longBusinessSummary', '') if info.get('longBusinessSummary') else f"{ticker} stock",
             sector=info.get('sector', 'Unknown'),
             industry=info.get('industry', 'Unknown'),
             current_price=Decimal(str(current_price)) if current_price else None,

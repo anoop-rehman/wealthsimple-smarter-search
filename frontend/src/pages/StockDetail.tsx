@@ -117,6 +117,7 @@ function StockDetail() {
   const [navSearchQuery, setNavSearchQuery] = useState('')
   const [navResults, setNavResults] = useState<Stock[]>([])
   const [navIsLoading, setNavIsLoading] = useState(false)
+  const [showFullDescription, setShowFullDescription] = useState(false)
   // Focus search on "/" key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -838,9 +839,43 @@ function StockDetail() {
         {/* About Section */}
         <section className="details-section">
           <h2 className="section-title">About {stock.ticker}</h2>
-          <p className="about-text">
-            {stock.description || `${stock.stock_name} is a publicly traded company listed on the ${stock.exchange || 'stock'} exchange.`}
-          </p>
+          <div className="about-text-container">
+            <p className="about-text">
+              {(() => {
+                const description = stock.description || `${stock.stock_name} is a publicly traded company listed on the ${stock.exchange || 'stock'} exchange.`
+                const maxLength = 500
+                if (description.length <= maxLength || showFullDescription) {
+                  return description
+                }
+                return (
+                  <>
+                    {description.slice(0, maxLength)}
+                    {'... '}
+                    <button
+                      className="show-more-link"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setShowFullDescription(true)
+                      }}
+                    >
+                      Show more
+                    </button>
+                  </>
+                )
+              })()}
+            </p>
+            {stock.description && stock.description.length > 500 && showFullDescription && (
+              <button
+                className="show-more-link"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setShowFullDescription(false)
+                }}
+              >
+                Show less
+              </button>
+            )}
+          </div>
         </section>
       </main>
     </div>
