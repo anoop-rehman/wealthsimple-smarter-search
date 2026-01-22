@@ -65,7 +65,7 @@ function Home() {
   useEffect(() => {
     const focusTimer = setTimeout(() => {
       searchInputRef.current?.focus()
-    }, 4500) // Exactly when "Search" fadeIn completes (3s start + 1.5s duration)
+    }, 2250) // Exactly when "Search" fadeIn completes (3s start + 1.5s duration)
     
     return () => clearTimeout(focusTimer)
   }, [])
@@ -177,18 +177,18 @@ function Home() {
         <div className="hero-title">
           <span className="hero-intro" style={{
             '--animation-start': '0s',
-            '--animation-end': '1s',
+            '--animation-end': '1.25s',
             '--animation-curve': 'ease-out'
           } as React.CSSProperties}>Introducing a simpler,</span>
           <div className="hero-main">
             <span className="hero-smarter" style={{
-              '--animation-start': '1.5s',
-              '--animation-end': '2.5s',
+              '--animation-start': '1.25s',
+              '--animation-end': '1.75s',
               '--animation-curve': 'ease-out'
             } as React.CSSProperties}>Smarter</span>
             <span className="hero-search" style={{
-              '--animation-start': '3s',
-              '--animation-end': '4.5s',
+              '--animation-start': '1.75s',
+              '--animation-end': '2.25s',
               '--animation-curve': 'ease-out'
             } as React.CSSProperties}>Search</span>
           </div>
