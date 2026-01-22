@@ -117,17 +117,20 @@ def update_stock_from_yahoo(db: Session, ticker: str, yahoo_ticker: Optional[str
             except:
                 pass
 
-        # Update earnings call date
-        if info.get('earningsDate'):
-            try:
-                earnings_dates = info['earningsDate']
+        # Update earnings call date from calendar
+        try:
+            calendar = stock_info.calendar
+            if calendar and isinstance(calendar, dict) and 'Earnings Date' in calendar:
+                earnings_dates = calendar['Earnings Date']
                 if isinstance(earnings_dates, list) and len(earnings_dates) > 0:
                     # Get the first (next) earnings date
                     next_earnings = earnings_dates[0]
-                    if isinstance(next_earnings, (int, float)):
-                        db_stock.earnings_call_date = datetime.fromtimestamp(next_earnings).date()
-            except Exception as e:
-                print(f"Could not parse earnings date for {ticker}: {e}")
+                    if isinstance(next_earnings, date):
+                        db_stock.earnings_call_date = next_earnings
+                    elif isinstance(next_earnings, datetime):
+                        db_stock.earnings_call_date = next_earnings.date()
+        except Exception as e:
+            print(f"Could not parse earnings date for {ticker}: {e}")
 
         # Update company info if missing
         if info.get('longName') and not db_stock.stock_name:
@@ -216,17 +219,20 @@ def add_stock_from_yahoo(db: Session, ticker: str, yahoo_ticker: Optional[str] =
             earnings_call_date=None,  # Will be set below if available
         )
         
-        # Set earnings call date if available
-        if info.get('earningsDate'):
-            try:
-                earnings_dates = info['earningsDate']
+        # Set earnings call date from calendar
+        try:
+            calendar = stock_info.calendar
+            if calendar and isinstance(calendar, dict) and 'Earnings Date' in calendar:
+                earnings_dates = calendar['Earnings Date']
                 if isinstance(earnings_dates, list) and len(earnings_dates) > 0:
                     # Get the first (next) earnings date
                     next_earnings = earnings_dates[0]
-                    if isinstance(next_earnings, (int, float)):
-                        new_stock.earnings_call_date = datetime.fromtimestamp(next_earnings).date()
-            except Exception as e:
-                print(f"Could not parse earnings date for {ticker}: {e}")
+                    if isinstance(next_earnings, date):
+                        new_stock.earnings_call_date = next_earnings
+                    elif isinstance(next_earnings, datetime):
+                        new_stock.earnings_call_date = next_earnings.date()
+        except Exception as e:
+            print(f"Could not parse earnings date for {ticker}: {e}")
 
         db.add(new_stock)
         db.commit()
