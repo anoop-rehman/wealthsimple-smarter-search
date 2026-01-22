@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List
-from app.database import get_db
+from app.database import get_db, SessionLocal
 from app.services.stock_update_service import (
     update_all_stocks,
     update_stock_from_yahoo,
@@ -208,3 +208,42 @@ def get_stock_detail(
         "ex_dividend_date": stock.ex_dividend_date.isoformat() if stock.ex_dividend_date else None,
         "earnings_call_date": stock.earnings_call_date.isoformat() if stock.earnings_call_date else None,
     }
+
+
+@router.post("/admin/seed-database", response_model=UpdateResponse)
+def seed_database_endpoint():
+    """
+    Seed the database with sample stock data.
+    
+    This endpoint runs the seed_database.py script logic.
+    WARNING: This will delete all existing stocks and replace them with sample data.
+    """
+    try:
+        # Import the seed function
+        import sys
+        import os
+        backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        scripts_dir = os.path.join(backend_dir, 'scripts')
+        sys.path.insert(0, backend_dir)
+        
+        # Change to backend directory to ensure relative imports work
+        original_cwd = os.getcwd()
+        os.chdir(backend_dir)
+        
+        try:
+            from scripts.seed_database import seed_database
+            seed_database()
+        finally:
+            os.chdir(original_cwd)
+        
+        return UpdateResponse(
+            success=True,
+            message="Database seeded successfully with 50 stocks"
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to seed database: {str(e)}"
+        )

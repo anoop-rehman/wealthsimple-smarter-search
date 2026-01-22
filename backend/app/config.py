@@ -6,8 +6,12 @@ load_dotenv()
 
 def get_database_url() -> str:
     """Get database URL from environment, constructing it if needed."""
+    import sys
+    
     # First, try DATABASE_URL directly
-    if db_url := os.getenv("DATABASE_URL"):
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        print(f"[DEBUG] Using DATABASE_URL from environment")
         return db_url
     
     # If not found, try constructing from PG* variables (Railway style)
@@ -17,10 +21,20 @@ def get_database_url() -> str:
     pg_password = os.getenv("PGPASSWORD")
     pg_database = os.getenv("PGDATABASE")
     
+    print(f"[DEBUG] DATABASE_URL not found. Checking PG* variables:")
+    print(f"[DEBUG]   PGHOST={pg_host}")
+    print(f"[DEBUG]   PGPORT={pg_port}")
+    print(f"[DEBUG]   PGUSER={pg_user}")
+    print(f"[DEBUG]   PGDATABASE={pg_database}")
+    print(f"[DEBUG]   PGPASSWORD={'***' if pg_password else None}")
+    
     if all([pg_host, pg_user, pg_password, pg_database]):
-        return f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
+        constructed_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
+        print(f"[DEBUG] Constructed DATABASE_URL from PG* variables")
+        return constructed_url
     
     # Fallback to localhost for development
+    print(f"[DEBUG] No database env vars found, using localhost fallback")
     return "postgresql://postgres:postgres@localhost:5432/stock_trading"
 
 
