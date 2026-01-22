@@ -1,3 +1,37 @@
+/* Animation Keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .home {
   min-height: 100vh;
   background-color: #1a1a1a;
@@ -111,12 +145,14 @@
   font-weight: 500;
   color: #888888;
   margin-bottom: 8px;
+  animation: fadeInUp 0.6s ease-out 0.1s both;
 }
 
 .hero-main {
   font-size: 48px;
   font-weight: 600;
   color: #ffffff;
+  animation: fadeInUp 0.6s ease-out 0.3s both;
 }
 
 .home-search-bar {
@@ -127,6 +163,11 @@
   padding: 16px 24px;
   gap: 12px;
   min-width: 400px;
+  transition: box-shadow 0.3s ease-out;
+}
+
+.home-search-bar:focus-within {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 0.05);
 }
 
 .home-search-icon {
@@ -158,6 +199,7 @@
 /* Search Container */
 .search-container {
   width: 600px;
+  animation: scaleIn 0.5s ease-out 0.5s both;
 }
 
 .home-search-bar.has-results {
@@ -173,6 +215,8 @@
   border-top: none;
   border-radius: 0 0 24px 24px;
   padding: 16px 0 24px 0;
+  animation: slideDown 0.2s ease-out both;
+  transform-origin: top;
 }
 
 .dropdown-section {
@@ -305,11 +349,20 @@
   color: #888888;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease-out;
+  animation: fadeInUp 0.5s ease-out both;
 }
+
+/* Staggered animation delays for prompt examples */
+.prompt-example:nth-child(1) { animation-delay: 0.6s; }
+.prompt-example:nth-child(2) { animation-delay: 0.7s; }
+.prompt-example:nth-child(3) { animation-delay: 0.8s; }
+.prompt-example:nth-child(4) { animation-delay: 0.9s; }
+.prompt-example:nth-child(5) { animation-delay: 1.0s; }
 
 .prompt-example:hover {
   background-color: #333333;
   border-color: #4a4a4a;
   color: #ffffff;
+  transform: scale(1.02) translateY(-2px);
 }
