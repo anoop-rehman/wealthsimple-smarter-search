@@ -117,6 +117,18 @@ def update_stock_from_yahoo(db: Session, ticker: str, yahoo_ticker: Optional[str
             except:
                 pass
 
+        # Update earnings call date
+        if info.get('earningsDate'):
+            try:
+                earnings_dates = info['earningsDate']
+                if isinstance(earnings_dates, list) and len(earnings_dates) > 0:
+                    # Get the first (next) earnings date
+                    next_earnings = earnings_dates[0]
+                    if isinstance(next_earnings, (int, float)):
+                        db_stock.earnings_call_date = datetime.fromtimestamp(next_earnings).date()
+            except Exception as e:
+                print(f"Could not parse earnings date for {ticker}: {e}")
+
         # Update company info if missing
         if info.get('longName') and not db_stock.stock_name:
             db_stock.stock_name = info['longName']
@@ -201,7 +213,20 @@ def add_stock_from_yahoo(db: Session, ticker: str, yahoo_ticker: Optional[str] =
             market_cap_numeric=market_cap,
             pe_ratio=Decimal(str(round(info['trailingPE'], 2))) if info.get('trailingPE') else None,
             dividend_yield_12month=f"{info['dividendYield'] * 100:.2f}%" if info.get('dividendYield') else None,
+            earnings_call_date=None,  # Will be set below if available
         )
+        
+        # Set earnings call date if available
+        if info.get('earningsDate'):
+            try:
+                earnings_dates = info['earningsDate']
+                if isinstance(earnings_dates, list) and len(earnings_dates) > 0:
+                    # Get the first (next) earnings date
+                    next_earnings = earnings_dates[0]
+                    if isinstance(next_earnings, (int, float)):
+                        new_stock.earnings_call_date = datetime.fromtimestamp(next_earnings).date()
+            except Exception as e:
+                print(f"Could not parse earnings date for {ticker}: {e}")
 
         db.add(new_stock)
         db.commit()
