@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { searchStocks } from '../services/api'
 import type { Stock } from '../types/stock'
 import Beams from '../components/Beams'
+import LightRays from '../components/LightRays'
 import './Home.css'
 
 // Debounce hook
@@ -127,6 +128,24 @@ function Home() {
           noiseIntensity={1.75}
           scale={0.2}
           rotation={30}
+        />
+      </div>
+      {/* Light rays effect */}
+      <div className="light-rays-background">
+        <LightRays
+          raysOrigin="top-center"
+          raysColor="#ffffff"
+          raysSpeed={1}
+          lightSpread={0.5}
+          rayLength={3}
+          followMouse={true}
+          mouseInfluence={0.1}
+          noiseAmount={0}
+          distortion={0}
+          className="custom-rays"
+          pulsating={false}
+          fadeDistance={1}
+          saturation={1}
         />
       </div>
       {/* Header */}
