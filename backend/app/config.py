@@ -66,7 +66,7 @@ class Settings:
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
     CORS_ORIGINS: list[str] = os.getenv(
         "CORS_ORIGINS", 
-        "http://localhost:5173,https://anoop-rehman.github.io,https://anoop-rehman.github.io/wealthsimple-ai-command-center"
+        "http://localhost:5173,https://anoop-rehman.github.io,https://anoop-rehman.github.io/wealthsimple-smarter-search"
     ).split(",")
 
 

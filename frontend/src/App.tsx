@@ -5,7 +5,7 @@ import StockDetail from './pages/StockDetail'
 
 function App() {
   // Only use basename in production (GitHub Pages)
-  const basename = import.meta.env.PROD ? '/wealthsimple-ai-command-center' : ''
+  const basename = import.meta.env.PROD ? '/wealthsimple-smarter-search' : ''
   
   return (
     <BrowserRouter basename={basename}>
