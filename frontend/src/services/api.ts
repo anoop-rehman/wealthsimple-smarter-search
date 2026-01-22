@@ -1,8 +1,18 @@
 import type { SearchResponse, SearchRequest, ChartResponse, ChartBatchResponse, Stock } from '../types/stock'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// Only use localhost in development, not in production
+const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost'
+const API_BASE_URL = import.meta.env.VITE_API_URL || (isDevelopment ? 'http://localhost:8000' : '')
 
 export async function searchStocks(request: SearchRequest): Promise<SearchResponse> {
+  if (!API_BASE_URL) {
+    return {
+      success: false,
+      results: [],
+      result_count: 0,
+      error: 'API URL not configured',
+    }
+  }
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/search`, {
       method: 'POST',
@@ -32,6 +42,14 @@ export async function searchStocks(request: SearchRequest): Promise<SearchRespon
 }
 
 export async function searchStocksGet(query: string, limit: number = 50): Promise<SearchResponse> {
+  if (!API_BASE_URL) {
+    return {
+      success: false,
+      results: [],
+      result_count: 0,
+      error: 'API URL not configured',
+    }
+  }
   try {
     const params = new URLSearchParams({
       query,
@@ -59,6 +77,9 @@ export async function searchStocksGet(query: string, limit: number = 50): Promis
 // Chart API functions
 
 export async function getStockChart(ticker: string, period: string = '1D'): Promise<ChartResponse | null> {
+  if (!API_BASE_URL) {
+    return null
+  }
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/stocks/${ticker}/chart?period=${period}`)
 
@@ -74,6 +95,9 @@ export async function getStockChart(ticker: string, period: string = '1D'): Prom
 }
 
 export async function getChartsBatch(tickers: string[], period: string = '1D'): Promise<ChartBatchResponse | null> {
+  if (!API_BASE_URL) {
+    return null
+  }
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/stocks/charts`, {
       method: 'POST',
@@ -97,6 +121,9 @@ export async function getChartsBatch(tickers: string[], period: string = '1D'): 
 // Stock detail API
 
 export async function getStockDetail(ticker: string): Promise<Stock | null> {
+  if (!API_BASE_URL) {
+    return null
+  }
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/stocks/${ticker}`)
 
