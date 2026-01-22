@@ -60,16 +60,33 @@
   gap: 16px;
 }
 
-.header-icon {
-  color: #888888;
-  font-size: 20px;
+.icon-btn {
+  background: transparent;
+  border: 1px solid #3a3a3a;
+  color: #ffffff;
   cursor: pointer;
-  transition: color 0.2s;
-  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-.header-icon:hover {
-  color: #ffffff;
+.icon-btn:hover {
+  background-color: #2a2a2a;
+  border-color: #4a4a4a;
+}
+
+.icon-btn-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.icon-btn-pill {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 22px;
+  gap: 8px;
 }
 
 /* Centered Content */

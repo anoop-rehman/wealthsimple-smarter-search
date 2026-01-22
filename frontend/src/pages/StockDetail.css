@@ -93,10 +93,33 @@
   border-radius: 4px;
 }
 
-.stock-detail-page .header-icon {
-  color: #888;
-  font-size: 18px;
+.stock-detail-page .icon-btn {
+  background: transparent;
+  border: 1px solid #3a3a3a;
+  color: #ffffff;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.stock-detail-page .icon-btn:hover {
+  background-color: #2a2a2a;
+  border-color: #4a4a4a;
+}
+
+.stock-detail-page .icon-btn-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.stock-detail-page .icon-btn-pill {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 22px;
+  gap: 8px;
 }
 
 /* Main Content */
