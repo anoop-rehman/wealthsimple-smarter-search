@@ -14,6 +14,7 @@
     position: absolute;
     z-index: 10000;
     white-space: nowrap;
+    visibility: hidden; /* Hidden until physics positions the words */
   }
   
   .word {

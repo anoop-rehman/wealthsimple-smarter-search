@@ -2,6 +2,9 @@ import { useRef, useState, useEffect } from 'react';
 import Matter from 'matter-js';
 import './FallingText.css';
 
+// Stable empty array to prevent useEffect re-runs due to new array references
+const EMPTY_HIGHLIGHT_WORDS: string[] = [];
+
 interface FallingTextProps {
   text?: string;
   highlightWords?: string[];
@@ -20,7 +23,7 @@ interface FallingTextProps {
 
 const FallingText: React.FC<FallingTextProps> = ({
   text = '',
-  highlightWords = [],
+  highlightWords = EMPTY_HIGHLIGHT_WORDS,
   highlightClass = 'highlighted',
   trigger = 'auto',
   backgroundColor = 'transparent',
@@ -33,8 +36,6 @@ const FallingText: React.FC<FallingTextProps> = ({
   initialX,
   initialY
 }) => {
-  // DIAGNOSTIC: Log when FallingText mounts
-  console.log(`[FallingText] MOUNT/RENDER for text="${text}"`, { trigger, initialX, initialY });
   const containerRef = useRef<HTMLDivElement | null>(null);
   const textRef = useRef<HTMLDivElement | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement | null>(null);
@@ -174,6 +175,11 @@ const FallingText: React.FC<FallingTextProps> = ({
       elem.style.transform = 'none';
       elem.style.zIndex = '10000';
     });
+
+    // Make text visible now that physics has positioned the words
+    if (textRef.current) {
+      textRef.current.style.visibility = 'visible';
+    }
 
     const mouse = Mouse.create(containerRef.current);
     const mouseConstraint = MouseConstraint.create(engine, {
