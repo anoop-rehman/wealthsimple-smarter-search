@@ -159,9 +159,9 @@ const FallingText: React.FC<FallingTextProps> = ({
 
       Matter.Body.setVelocity(body, {
         x: (Math.random() - 0.5) * 5,
-        y: 0
+        y: -4 + (Math.random() - 0.5) * 2 // Upward pop with slight variation
       });
-      Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.05);
+      Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.1);
       return { elem, body };
     });
 
