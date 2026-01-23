@@ -182,6 +182,31 @@
   border-radius: 50%;
 }
 
+.stock-detail-page .user-icon-slot-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Add opacity gradient fade to top and bottom of user icon slot */
+.stock-detail-page .user-icon-slot-container [class*="slot_wrap"] {
+  position: relative;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+}
+
 .stock-detail-page .icon-btn-pill {
   height: 44px;
   padding: 0 16px;

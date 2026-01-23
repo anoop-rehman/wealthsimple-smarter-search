@@ -4,6 +4,8 @@ import { searchStocks, getChartsBatch } from '../services/api'
 import type { Stock } from '../types/stock'
 import NavLinkFalling from '../components/NavLinkFalling'
 import Confetti from 'react-confetti-boom'
+import SlotCounter from 'react-slot-counter'
+import type { SlotCounterRef } from 'react-slot-counter'
 import './Stocks.css'
 
 type ChartData = Record<string, { prices: number[], timestamps: string[] } | null>
@@ -114,6 +116,19 @@ function Stocks() {
   const [navIsLoading, setNavIsLoading] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
   const [confettiPosition, setConfettiPosition] = useState({ x: 0.5, y: 0.1 })
+  const [isUserIconAnimating, setIsUserIconAnimating] = useState(false)
+  const userIconRef = useRef<SlotCounterRef>(null)
+  
+  // User icon SVG element
+  const userIconSvg = (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+    </svg>
+  )
+  
+  // Dummy characters for slot animation (same icon repeated)
+  const userIconDummyChars = Array(10).fill(null).map(() => userIconSvg)
 
   // Focus search on "/" key press
   useEffect(() => {
@@ -364,11 +379,31 @@ function Stocks() {
               <path d="M12 8c-2 0-4-2-4-4s2-4 4-4 4 2 4 4-2 4-4 4z"/>
             </svg>
           </button>
-          <button className="icon-btn icon-btn-pill">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="8" r="4"/>
-              <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-            </svg>
+          <button 
+            className="icon-btn icon-btn-pill user-icon-button"
+            onClick={() => {
+              if (isUserIconAnimating) return // Prevent multiple clicks while animation is playing
+              setIsUserIconAnimating(true)
+              setTimeout(() => {
+                userIconRef.current?.startAnimation()
+              }, 50)
+            }}
+          >
+            <div className="user-icon-slot-container">
+              <SlotCounter
+                ref={userIconRef}
+                startValue={[userIconSvg]}
+                value={[userIconSvg]}
+                dummyCharacters={userIconDummyChars}
+                sequentialAnimationMode
+                direction="bottom-up"
+                autoAnimationStart={false}
+                animateUnchanged
+                onAnimationEnd={() => {
+                  setIsUserIconAnimating(false)
+                }}
+              />
+            </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 9l6 6 6-6"/>
             </svg>
