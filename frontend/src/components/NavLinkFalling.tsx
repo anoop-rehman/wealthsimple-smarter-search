@@ -16,7 +16,15 @@ const NavLinkFalling: React.FC<NavLinkFallingProps> = ({ text, href, active = fa
   const [shouldRenderFalling, setShouldRenderFalling] = useState(false);
   const linkRef = useRef<HTMLAnchorElement>(null);
 
+  // Exclude "Home" from falling animation - it should remain functional
+  const isHome = text.toLowerCase() === 'home';
+
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // If it's Home, don't do the falling animation
+    if (isHome) {
+      return; // Let the default link behavior handle it
+    }
+
     if (!hasFallen && !isRemoved) {
       e.preventDefault();
       // Use the clicked element directly to get accurate position
@@ -52,6 +60,19 @@ const NavLinkFalling: React.FC<NavLinkFallingProps> = ({ text, href, active = fa
       }
     }
   };
+
+  // If it's Home, just render a regular link without falling animation
+  if (isHome) {
+    return (
+      <a
+        href={href}
+        className={`nav-link ${active ? 'active' : ''}`}
+        onClick={onClick}
+      >
+        {text}
+      </a>
+    );
+  }
 
   if (isRemoved) {
     return null;
