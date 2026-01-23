@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { searchStocks } from '../services/api'
 import type { Stock } from '../types/stock'
 import Beams from '../components/Beams'
+import NavLinkFalling from '../components/NavLinkFalling'
 import './Home.css'
 
 // Debounce hook
@@ -143,11 +144,11 @@ function Home() {
         <div className="header-left">
           <div className="logo">W</div>
           <nav className="nav-links">
-            <a href="/" className="nav-link active">Home</a>
-            <a href="#" className="nav-link">Move</a>
-            <a href="#" className="nav-link">Activity</a>
-            <a href="#" className="nav-link">Tax</a>
-            <a href="#" className="nav-link">Mortgage</a>
+            <NavLinkFalling text="Home" href="/" active={true} onClick={(e) => { e.preventDefault(); navigate('/'); }} />
+            <NavLinkFalling text="Move" href="#" />
+            <NavLinkFalling text="Activity" href="#" />
+            <NavLinkFalling text="Tax" href="#" />
+            <NavLinkFalling text="Mortgage" href="#" />
           </nav>
         </div>
         <div className="header-right">

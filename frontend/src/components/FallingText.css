@@ -1,0 +1,38 @@
+
+.falling-text-container {
+    position: relative;
+    z-index: 9999;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    text-align: center;
+    padding-top: 2em;
+  }
+  
+  .falling-text-target {
+    display: inline-block;
+    position: absolute;
+    z-index: 10000;
+    white-space: nowrap;
+  }
+  
+  .word {
+    display: inline-block;
+    margin: 0 2px;
+    user-select: none;
+    position: relative;
+    z-index: 10000;
+  }
+  
+  .highlighted {
+    color: cyan;
+    font-weight: bold;
+  }
+  
+  .falling-text-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+  }
+  

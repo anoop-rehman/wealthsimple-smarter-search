@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { searchStocks, getChartsBatch } from '../services/api'
 import type { Stock } from '../types/stock'
+import NavLinkFalling from '../components/NavLinkFalling'
 import './Stocks.css'
 
 type ChartData = Record<string, { prices: number[], timestamps: string[] } | null>
@@ -246,11 +247,11 @@ function Stocks() {
         <div className="header-left">
           <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>W</div>
           <nav className="nav-links">
-            <a href="/" className="nav-link">Home</a>
-            <a href="#" className="nav-link">Move</a>
-            <a href="#" className="nav-link">Activity</a>
-            <a href="#" className="nav-link">Tax</a>
-            <a href="#" className="nav-link">Mortgage</a>
+            <NavLinkFalling text="Home" href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} />
+            <NavLinkFalling text="Move" href="#" />
+            <NavLinkFalling text="Activity" href="#" />
+            <NavLinkFalling text="Tax" href="#" />
+            <NavLinkFalling text="Mortgage" href="#" />
           </nav>
         </div>
         <div className="header-right">

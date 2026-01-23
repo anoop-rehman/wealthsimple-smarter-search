@@ -4,6 +4,7 @@ import { getStockDetail, getStockChart, searchStocks } from '../services/api'
 import type { Stock, ChartResponse } from '../types/stock'
 import SlotCounter from 'react-slot-counter'
 import type { SlotCounterRef } from 'react-slot-counter'
+import NavLinkFalling from '../components/NavLinkFalling'
 import './StockDetail.css'
 const PERIODS = ['1D', '1W', '1M', '3M', '1Y', '5Y'] as const
 type Period = typeof PERIODS[number]
@@ -524,11 +525,11 @@ function StockDetail() {
         <div className="header-left">
           <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>W</div>
           <nav className="nav-links">
-            <a href="/" className="nav-link">Home</a>
-            <a href="#" className="nav-link">Move</a>
-            <a href="#" className="nav-link">Activity</a>
-            <a href="#" className="nav-link">Tax</a>
-            <a href="#" className="nav-link">Mortgage</a>
+            <NavLinkFalling text="Home" href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} />
+            <NavLinkFalling text="Move" href="#" />
+            <NavLinkFalling text="Activity" href="#" />
+            <NavLinkFalling text="Tax" href="#" />
+            <NavLinkFalling text="Mortgage" href="#" />
           </nav>
         </div>
         <div className="header-right">
