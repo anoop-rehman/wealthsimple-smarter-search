@@ -737,21 +737,21 @@ function StockDetail() {
                     {navIsLoading ? 'Searching...' : `Results (${navResults.length})`}
                   </span>
                   <div className="dropdown-results">
-                    {navResults.map((result, index) => (
+                    {navResults.map((stock) => (
                       <div
-                        key={index}
+                        key={`nav-${stock.ticker}`}
                         className="dropdown-result-item"
                         onClick={() => {
-                          navigate(`/stock/${result.ticker}`)
+                          navigate(`/stock/${stock.ticker}`)
                           setNavSearchQuery('')
                         }}
                       >
                         <div className="result-left">
-                          <StockLogo stock={result} size="small" className="result-logo" />
-                          <span className="result-ticker">{result.ticker}</span>
-                          <span className="result-name">{result.stock_name}</span>
+                          <StockLogo stock={stock} size="small" className="result-logo" />
+                          <span className="result-ticker">{stock.ticker}</span>
+                          <span className="result-name">{stock.stock_name}</span>
                         </div>
-                        <StarButton ticker={result.ticker} className="result-star" />
+                        <StarButton ticker={stock.ticker} className="result-star" />
                       </div>
                     ))}
                     {!navIsLoading && navResults.length === 0 && (

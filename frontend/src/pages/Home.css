@@ -90,12 +90,9 @@
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Homepage logo - centered */
+/* Homepage logo - left aligned on desktop, will be centered on mobile */
 .logo-home {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
+  /* Normal positioning on desktop */
 }
 
 .nav-links {
@@ -545,6 +542,13 @@
     display: none;
   }
 
+  /* Center logo on mobile */
+  .logo-home {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
 
   .hero-title {
     margin-bottom: 24px;

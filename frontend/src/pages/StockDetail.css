@@ -77,7 +77,6 @@
   display: block;
 }
 
-
 .stock-detail-page .nav-links {
   display: flex;
   gap: 0;
@@ -302,6 +301,18 @@
   object-fit: contain;
   background-color: #ffffff;
   padding: 2px;
+}
+
+.stock-detail-page .result-logo.unh {
+  background-color: #3b82f6;
+}
+
+.stock-detail-page .result-logo.gehc {
+  background-color: #8b5cf6;
+}
+
+.stock-detail-page .result-logo.pfe {
+  background-color: #1e40af;
 }
 
 .stock-detail-page .result-ticker {
@@ -764,14 +775,11 @@
 
 @media (max-width: 600px) {
   .stock-detail-page .header {
-    flex-direction: column;
-    gap: 16px;
+    padding: 12px 16px;
   }
 
-  .stock-detail-page .header-left,
-  .stock-detail-page .header-right {
-    width: 100%;
-    justify-content: center;
+  .stock-detail-page .header-left {
+    gap: 16px;
   }
 
   .stock-detail-page .nav-links {
