@@ -290,6 +290,16 @@
   font-size: 10px;
   font-weight: 600;
   color: #ffffff;
+  flex-shrink: 0;
+}
+
+.stock-detail-page .result-logo img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: contain;
+  background-color: #ffffff;
+  padding: 2px;
 }
 
 .stock-detail-page .result-ticker {
@@ -362,6 +372,32 @@
   font-weight: 600;
   font-size: 16px;
   color: #ffffff;
+  flex-shrink: 0;
+}
+
+/* StockLogo component styles */
+.stock-logo-large.stock-logo-small {
+  width: 32px;
+  height: 32px;
+}
+
+.stock-logo-large.stock-logo-medium {
+  width: 40px;
+  height: 40px;
+}
+
+.stock-logo-large.stock-logo-large {
+  width: 48px;
+  height: 48px;
+}
+
+.stock-logo-large img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: contain;
+  background-color: #ffffff;
+  padding: 2px;
 }
 
 .stock-title {

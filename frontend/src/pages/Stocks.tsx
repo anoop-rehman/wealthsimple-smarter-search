@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { searchStocks, getChartsBatch } from '../services/api'
 import type { Stock } from '../types/stock'
 import NavLinkFalling from '../components/NavLinkFalling'
+import StockLogo from '../components/StockLogo'
 import Confetti from 'react-confetti-boom'
 import SlotCounter from 'react-slot-counter'
 import type { SlotCounterRef } from 'react-slot-counter'
@@ -10,27 +11,6 @@ import './Stocks.css'
 
 type ChartData = Record<string, { prices: number[], timestamps: string[] } | null>
 
-// Color palette for stock logos based on sector
-const sectorColors: Record<string, string> = {
-  Healthcare: '#3b82f6',
-  Technology: '#8b5cf6',
-  Finance: '#10b981',
-  'Consumer Discretionary': '#f59e0b',
-  'Consumer Staples': '#ef4444',
-  Energy: '#f97316',
-  Industrials: '#6366f1',
-  Communication: '#ec4899',
-  Materials: '#14b8a6',
-  Utilities: '#84cc16',
-}
-
-function getLogoColor(sector?: string): string {
-  return sectorColors[sector || ''] || '#6366f1'
-}
-
-function getLogoText(ticker: string): string {
-  return ticker.length <= 2 ? ticker : ticker.slice(0, 2)
-}
 
 function formatDate(dateString?: string): string {
   if (!dateString) return '-'
@@ -323,12 +303,7 @@ function Stocks() {
                         }}
                       >
                         <div className="result-left">
-                          <div
-                            className="result-logo"
-                            style={{ backgroundColor: getLogoColor(stock.sector) }}
-                          >
-                            {getLogoText(stock.ticker)}
-                          </div>
+                          <StockLogo stock={stock} size="small" className="result-logo" />
                           <span className="result-ticker">{stock.ticker}</span>
                           <span className="result-name">{stock.stock_name}</span>
                         </div>
@@ -446,12 +421,7 @@ function Stocks() {
                 >
                   <td>
                     <div className="position-cell">
-                      <div
-                        className="stock-logo"
-                        style={{ backgroundColor: getLogoColor(stock.sector) }}
-                      >
-                        {getLogoText(stock.ticker)}
-                      </div>
+                      <StockLogo stock={stock} size="small" className="stock-logo" />
                       <span className="ticker">{stock.ticker}</span>
                       <span className="company-name">{stock.stock_name}</span>
                     </div>

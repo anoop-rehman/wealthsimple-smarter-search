@@ -5,6 +5,7 @@ import type { Stock, ChartResponse } from '../types/stock'
 import SlotCounter from 'react-slot-counter'
 import type { SlotCounterRef } from 'react-slot-counter'
 import NavLinkFalling from '../components/NavLinkFalling'
+import StockLogo from '../components/StockLogo'
 import Confetti from 'react-confetti-boom'
 import './StockDetail.css'
 const PERIODS = ['1D', '1W', '1M', '3M', '1Y', '5Y', '10Y'] as const
@@ -27,31 +28,6 @@ interface HoverData {
   y: number
 }
 
-// Color palette for stock logos based on sector
-const sectorColors: Record<string, string> = {
-  Healthcare: '#3b82f6',
-  Technology: '#8b5cf6',
-  Finance: '#10b981',
-  'Financial Services': '#10b981',
-  'Consumer Discretionary': '#f59e0b',
-  'Consumer Cyclical': '#f59e0b',
-  'Consumer Staples': '#ef4444',
-  'Consumer Defensive': '#ef4444',
-  Energy: '#f97316',
-  Industrials: '#6366f1',
-  Communication: '#ec4899',
-  'Communication Services': '#ec4899',
-  Materials: '#14b8a6',
-  'Basic Materials': '#14b8a6',
-  Utilities: '#84cc16',
-  'Real Estate': '#0ea5e9',
-}
-function getLogoColor(sector?: string): string {
-  return sectorColors[sector || ''] || '#6366f1'
-}
-function getLogoText(ticker: string): string {
-  return ticker.length <= 2 ? ticker : ticker.slice(0, 2)
-}
 function formatPrice(price?: number | null): string {
   if (price === undefined || price === null) return '-'
   return `$${price.toFixed(2)}`
@@ -770,12 +746,7 @@ function StockDetail() {
                         }}
                       >
                         <div className="result-left">
-                          <div
-                            className="result-logo"
-                            style={{ backgroundColor: getLogoColor(result.sector) }}
-                          >
-                            {getLogoText(result.ticker)}
-                          </div>
+                          <StockLogo stock={result} size="small" className="result-logo" />
                           <span className="result-ticker">{result.ticker}</span>
                           <span className="result-name">{result.stock_name}</span>
                         </div>
@@ -862,12 +833,7 @@ function StockDetail() {
       <main className="detail-content">
         {/* Stock Header */}
         <div className="stock-header">
-          <div
-            className="stock-logo-large"
-            style={{ backgroundColor: getLogoColor(stock.sector) }}
-          >
-            {getLogoText(stock.ticker)}
-          </div>
+          <StockLogo stock={stock} size="large" className="stock-logo-large" />
           <div className="stock-title">
             <div className="ticker-row">
               <span className="ticker-symbol">{stock.ticker}</span>

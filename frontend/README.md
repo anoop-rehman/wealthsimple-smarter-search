@@ -2,6 +2,16 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Environment Variables
+
+To enable company logos from Logo.dev, create a `.env` file in the frontend directory with:
+
+```
+VITE_LOGO_DEV_TOKEN=your_logo_dev_api_key_here
+```
+
+Get your API key from [Logo.dev](https://logo.dev). If the API key is not set, the app will fall back to colored placeholder logos.
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
