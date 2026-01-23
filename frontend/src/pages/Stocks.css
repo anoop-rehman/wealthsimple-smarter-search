@@ -594,11 +594,9 @@
     overflow-x: hidden;
   }
 
-  /* Hide columns: Earnings call (2), Market Cap (3), 1D chart (6) */
-  .table-header th:nth-child(2),
+  /* Hide columns: Market Cap (3), 1D chart (6) */
   .table-header th:nth-child(3),
   .table-header th:nth-child(6),
-  .stock-row td:nth-child(2),
   .stock-row td:nth-child(3),
   .stock-row td:nth-child(6) {
     display: none;
@@ -616,15 +614,19 @@
   }
 
   .table-header th:first-child {
-    width: 45%;
+    width: 35%;
+  }
+
+  .table-header th:nth-child(2) {
+    width: 20%;
   }
 
   .table-header th:nth-child(4) {
-    width: 30%;
+    width: 25%;
   }
 
   .table-header th:nth-child(5) {
-    width: 25%;
+    width: 20%;
   }
 
   .stock-row td {
@@ -675,6 +677,7 @@
     flex: 1;
   }
 
+  .stock-row td:nth-child(2),
   .stock-row td:nth-child(4),
   .stock-row td:nth-child(5) {
     font-size: 12px;
