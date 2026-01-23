@@ -532,10 +532,28 @@
 
   .header-left {
     gap: 16px;
+    flex: 1;
   }
 
-  .nav-links {
-    display: none;
+  /* Show Home navlink only on Home page mobile */
+  .home .nav-links {
+    display: flex !important;
+    gap: 0;
+  }
+
+  /* Show Home navlink, hide all others on mobile */
+  .home .nav-links a:first-child {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .home .nav-links a:not(:first-child) {
+    display: none !important;
+  }
+
+  .header-right {
+    flex: 0;
   }
 
   .user-icon-button {
