@@ -9,7 +9,6 @@ import StarButton from '../components/StarButton'
 import Confetti from 'react-confetti-boom'
 import SlotCounter from 'react-slot-counter'
 import type { SlotCounterRef } from 'react-slot-counter'
-import wordmarkSvg from '../assets/ws_wordmark.svg'
 import './Home.css'
 
 // Debounce hook
@@ -153,10 +152,9 @@ function Home() {
       <header className="header">
         <div className="header-left">
           <div className="logo logo-home" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-            <svg className="logo-w" width="32" height="20" viewBox="0 0 32 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="32" height="20" viewBox="0 0 32 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M31.9427 0.852018C31.1685 1.22123 30.509 1.76084 29.9355 2.49925C29.362 3.23767 28.7025 4.37369 28.0143 5.87893L21.9642 19H21.4194L16.5161 7.55456L10.724 19H10.0932L3.67025 4.7429C3.15412 3.55008 2.58064 2.66966 1.97849 2.07324C1.37634 1.47683 0.716846 1.07922 0 0.823617V0H9.92115V0.823617C9.54839 0.937219 9.319 1.10762 9.17563 1.33483C9.06093 1.56203 9.00359 1.78924 9.00359 2.04484C9.00359 2.18685 9.03226 2.35725 9.08961 2.55605C9.14695 2.72646 9.2043 2.92526 9.26165 3.09567L12.9892 12.0135L15.914 6.33333L14.595 3.20927C14.1936 2.24365 13.7921 1.64723 13.3907 1.39163C12.9893 1.16442 12.4731 0.96562 11.8423 0.852018V0.0283998H22.0789V0.852018C21.19 0.96562 20.7599 1.50523 20.7599 2.49925C20.7599 2.64126 20.7885 2.86846 20.8459 3.18087C20.9032 3.49327 20.9892 3.77728 21.1326 4.03289L24.2867 11.6158L25.2043 9.6562C25.8925 8.23617 26.3799 7.01495 26.6953 5.96413C27.0108 4.9133 27.1828 4.08969 27.1828 3.46487C27.1828 2.66966 27.0394 2.10164 26.7527 1.70404C26.466 1.30643 25.9498 1.02242 25.2043 0.823617V0H32V0.852018H31.9427Z" fill="#ffffff"/>
             </svg>
-            <img src={wordmarkSvg} alt="Wealthsimple" className="logo-wordmark" />
           </div>
           <nav className="nav-links">
             <NavLinkFalling text="Home" href="/" active={true} onClick={(e) => { e.preventDefault(); navigate('/'); }} />

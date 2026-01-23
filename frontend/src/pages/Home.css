@@ -90,16 +90,6 @@
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.logo-wordmark {
-  display: none;
-  height: 20px;
-  width: auto;
-}
-
-.logo-w {
-  display: block;
-}
-
 /* Homepage logo - left aligned on desktop, will be centered on mobile */
 .logo-home {
   /* Normal positioning on desktop */
@@ -558,17 +548,6 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
-    height: auto;
-  }
-
-  /* Show wordmark, hide W logo on mobile */
-  .logo-home .logo-w {
-    display: none !important;
-  }
-
-  .logo-home .logo-wordmark {
-    display: block !important;
-    height: 24px;
   }
 
   .hero-title {
