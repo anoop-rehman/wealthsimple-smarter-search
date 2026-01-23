@@ -246,6 +246,15 @@ function StockDetail() {
     return path
   }, [])
 
+  // Get ISO week number for a date
+  const getWeekNumber = useCallback((date: Date): number => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+    const dayNum = d.getUTCDay() || 7
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
+  }, [])
+
   // Downsample data points based on period
   const downsampleData = useCallback((dataPoints: ChartResponse['data_points'], period: Period) => {
     if (!dataPoints || dataPoints.length < 2) return dataPoints
@@ -304,6 +313,67 @@ function StockDetail() {
       return dailyPoints
     }
     
+    if (period === '1Y') {
+      // Keep only the last data point of each week (daily data downsampled to weekly)
+      const weeklyPoints: ChartResponse['data_points'] = []
+      
+      for (let i = 0; i < dataPoints.length; i++) {
+        const point = dataPoints[i]
+        const date = new Date(point.timestamp)
+        // Get week number (ISO week: year-week)
+        const year = date.getFullYear()
+        const week = getWeekNumber(date)
+        const weekKey = `${year}-W${String(week).padStart(2, '0')}`
+        
+        // Get the last point's week for comparison
+        const lastPointWeek = weeklyPoints.length > 0 
+          ? (() => {
+              const lastDate = new Date(weeklyPoints[weeklyPoints.length - 1].timestamp)
+              const lastYear = lastDate.getFullYear()
+              const lastWeek = getWeekNumber(lastDate)
+              return `${lastYear}-W${String(lastWeek).padStart(2, '0')}`
+            })()
+          : null
+        
+        // Always update to latest point of the week
+        if (weeklyPoints.length === 0 || lastPointWeek !== weekKey) {
+          weeklyPoints.push(point)
+        } else {
+          weeklyPoints[weeklyPoints.length - 1] = point
+        }
+      }
+      
+      return weeklyPoints
+    }
+    
+    if (period === '5Y') {
+      // Keep only the last data point of each month (weekly data downsampled to monthly)
+      const monthlyPoints: ChartResponse['data_points'] = []
+      
+      for (let i = 0; i < dataPoints.length; i++) {
+        const point = dataPoints[i]
+        const date = new Date(point.timestamp)
+        const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        
+        // Get the last point's month for comparison
+        const lastPointMonth = monthlyPoints.length > 0 
+          ? (() => {
+              const lastDate = new Date(monthlyPoints[monthlyPoints.length - 1].timestamp)
+              return `${lastDate.getFullYear()}-${String(lastDate.getMonth() + 1).padStart(2, '0')}`
+            })()
+          : null
+        
+        // Always update to latest point of the month
+        if (monthlyPoints.length === 0 || lastPointMonth !== month) {
+          monthlyPoints.push(point)
+        } else {
+          monthlyPoints[monthlyPoints.length - 1] = point
+        }
+      }
+      
+      return monthlyPoints
+    }
+    
     if (period === '10Y') {
       // Keep only the last data point of each month (weekly data downsampled to monthly)
       const monthlyPoints: ChartResponse['data_points'] = []
@@ -333,7 +403,7 @@ function StockDetail() {
     }
     
     return dataPoints
-  }, [])
+  }, [getWeekNumber])
 
   // Filter data to only open and close points per day (for 3M hover)
   const filterOpenClosePoints = useCallback((dataPoints: ChartResponse['data_points']) => {
