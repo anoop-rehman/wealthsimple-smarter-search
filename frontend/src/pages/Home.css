@@ -530,7 +530,7 @@
     gap: 12px;
     flex: 1;
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
   }
 
   /* Make navlinks horizontally scrollable on Home page mobile */
@@ -539,10 +539,21 @@
     gap: 0;
     flex-wrap: nowrap;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  /* Ensure header doesn't clip falling text */
+  .home .header {
+    overflow: visible;
+  }
+
+  /* Ensure falling text appears above everything */
+  .home .nav-link-falling {
+    z-index: 10000 !important;
+    position: fixed !important;
   }
 
   /* Hide scrollbar for Chrome, Safari and Opera */

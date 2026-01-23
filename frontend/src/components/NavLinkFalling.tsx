@@ -49,10 +49,8 @@ const NavLinkFalling: React.FC<NavLinkFallingProps> = ({ text, href, active = fa
         navLinkLeft: navLinkCenterX
       } as any);
       setHasFallen(true);
-      // Small delay to ensure container is rendered and DOM is updated
-      setTimeout(() => {
-        setShouldRenderFalling(true);
-      }, 50);
+      // Start falling animation immediately
+      setShouldRenderFalling(true);
       // Handle navigation after animation starts
       if (href !== '#') {
         setTimeout(() => {
@@ -86,14 +84,7 @@ const NavLinkFalling: React.FC<NavLinkFallingProps> = ({ text, href, active = fa
   if (hasFallen && fallPosition) {
     return (
       <>
-        <a
-          ref={linkRef}
-          href={href}
-          className={`nav-link ${active ? 'active' : ''}`}
-          style={{ visibility: 'hidden', pointerEvents: 'none' }}
-        >
-          {text}
-        </a>
+        {/* Don't render the navlink at all - it's removed immediately */}
         {shouldRenderFalling && (
           <div 
             className={`nav-link-falling ${active ? 'active' : ''}`}
