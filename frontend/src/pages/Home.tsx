@@ -80,12 +80,29 @@ function Home() {
 
   const debouncedQuery = useDebounce(searchQuery, 300)
 
+  // DIAGNOSTIC: Global click listener to see all clicks
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      console.log('[Global] Click detected', {
+        target: target.tagName,
+        className: target.className,
+        id: target.id,
+        clientX: e.clientX,
+        clientY: e.clientY,
+        isTrusted: e.isTrusted,
+      });
+    };
+    document.addEventListener('click', handleGlobalClick, true); // capture phase
+    return () => document.removeEventListener('click', handleGlobalClick, true);
+  }, []);
+
   // Auto-focus search bar immediately after "Search" animation completes (4.5s)
   useEffect(() => {
     const focusTimer = setTimeout(() => {
       searchInputRef.current?.focus()
     }, 2250) // Exactly when "Search" fadeIn completes (3s start + 1.5s duration)
-    
+
     return () => clearTimeout(focusTimer)
   }, [])
 
@@ -185,9 +202,17 @@ function Home() {
           </nav>
         </div>
         <div className="header-right">
-          <button 
+          <button
             className="icon-btn icon-btn-circle"
             onClick={(e) => {
+              // DIAGNOSTIC: Log confetti button click
+              console.log('[Confetti] Button clicked', {
+                target: e.target,
+                currentTarget: e.currentTarget,
+                clientX: e.clientX,
+                clientY: e.clientY,
+                isTrusted: e.isTrusted,
+              });
               if (showConfetti) return // Prevent multiple clicks while animation is playing
               const rect = e.currentTarget.getBoundingClientRect()
               const x = (rect.left + rect.width / 2) / window.innerWidth
@@ -204,9 +229,17 @@ function Home() {
               <path d="M12 8c-2 0-4-2-4-4s2-4 4-4 4 2 4 4-2 4-4 4z"/>
             </svg>
           </button>
-          <button 
+          <button
             className="icon-btn icon-btn-pill user-icon-button"
-            onClick={() => {
+            onClick={(e) => {
+              // DIAGNOSTIC: Log user icon button click
+              console.log('[UserIcon] Button clicked', {
+                target: e.target,
+                currentTarget: e.currentTarget,
+                clientX: e.clientX,
+                clientY: e.clientY,
+                isTrusted: e.isTrusted,
+              });
               if (isUserIconAnimating) return // Prevent multiple clicks while animation is playing
               setIsUserIconAnimating(true)
               setTimeout(() => {

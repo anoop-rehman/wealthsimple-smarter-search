@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import FallingText from './FallingText';
 import './NavLinkFalling.css';
 
@@ -16,10 +16,45 @@ const NavLinkFalling: React.FC<NavLinkFallingProps> = ({ text, href, active = fa
   const [shouldRenderFalling, setShouldRenderFalling] = useState(false);
   const linkRef = useRef<HTMLAnchorElement>(null);
 
+  // DIAGNOSTIC: Track renders and state
+  console.log(`[NavLinkFalling] RENDER "${text}"`, { hasFallen, isRemoved, shouldRenderFalling, fallPosition: !!fallPosition });
+
+  // DIAGNOSTIC: Track when hasFallen changes
+  useEffect(() => {
+    if (hasFallen) {
+      console.log(`[NavLinkFalling] "${text}" hasFallen changed to TRUE`);
+      console.trace(`[NavLinkFalling] Stack trace for "${text}" hasFallen=true`);
+    }
+  }, [hasFallen, text]);
+
+  // DIAGNOSTIC: Track when shouldRenderFalling changes
+  useEffect(() => {
+    if (shouldRenderFalling) {
+      console.log(`[NavLinkFalling] "${text}" shouldRenderFalling changed to TRUE - FallingText will mount`);
+    }
+  }, [shouldRenderFalling, text]);
+
+  // Memoize onComplete to prevent FallingText useEffect from re-running on parent re-renders
+  const handleFallingComplete = useCallback(() => {
+    setIsRemoved(true);
+  }, []);
+
   // Exclude "Home" from falling animation - it should remain functional
   const isHome = text.toLowerCase() === 'home';
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // DIAGNOSTIC: Log every click on nav links
+    console.log(`[NavLinkFalling] Click on "${text}"`, {
+      target: e.target,
+      currentTarget: e.currentTarget,
+      eventPhase: e.eventPhase, // 1=capture, 2=target, 3=bubble
+      isTrusted: e.isTrusted, // false if synthetic/programmatic
+      timeStamp: e.timeStamp,
+      clientX: e.clientX,
+      clientY: e.clientY,
+    });
+    console.trace(`[NavLinkFalling] Stack trace for "${text}" click`);
+
     // If it's Home, don't do the falling animation
     if (isHome) {
       return; // Let the default link behavior handle it
@@ -113,10 +148,7 @@ const NavLinkFalling: React.FC<NavLinkFallingProps> = ({ text, href, active = fa
               noBoundaries={true}
               initialX={(fallPosition as any).navLinkLeft || 0}
               initialY={(fallPosition as any).navLinkTop || 0}
-              onComplete={() => {
-                // Remove component after falling off screen
-                setIsRemoved(true);
-              }}
+              onComplete={handleFallingComplete}
             />
           </div>
         )}

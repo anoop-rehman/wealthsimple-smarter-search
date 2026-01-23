@@ -11,15 +11,22 @@
   min-height: 100px;
   padding-top: 0;
   text-align: left;
-  cursor: pointer;
+  cursor: default;
   overflow: visible;
   z-index: 9999;
   position: relative;
+  pointer-events: none;
 }
 
 .nav-link-falling .word {
   position: relative;
   z-index: 10000;
+  pointer-events: none;
+}
+
+.nav-link-falling .falling-text-canvas,
+.nav-link-falling canvas {
+  pointer-events: none;
 }
 
 .nav-link-falling .falling-text-target {

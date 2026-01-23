@@ -33,6 +33,8 @@ const FallingText: React.FC<FallingTextProps> = ({
   initialX,
   initialY
 }) => {
+  // DIAGNOSTIC: Log when FallingText mounts
+  console.log(`[FallingText] MOUNT/RENDER for text="${text}"`, { trigger, initialX, initialY });
   const containerRef = useRef<HTMLDivElement | null>(null);
   const textRef = useRef<HTMLDivElement | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement | null>(null);
