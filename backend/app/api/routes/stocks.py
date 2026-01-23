@@ -134,7 +134,7 @@ def get_stock_chart(
     """
     Get chart data for a single stock.
 
-    Periods: 1D, 5D, 1M, 3M, 6M, 1Y, 5Y
+    Periods: 1D, 5D, 1M, 3M, 6M, 1Y, 5Y, 10Y
     """
     chart_data = fetch_chart_data(db, ticker, period)
 

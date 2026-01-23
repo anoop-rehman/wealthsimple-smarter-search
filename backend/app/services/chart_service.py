@@ -16,6 +16,7 @@ PERIOD_CONFIG = {
     "6M": ("6mo", "1d"),     # Daily for 6 months
     "1Y": ("1y", "1d"),      # Daily for 1 year
     "5Y": ("5y", "1wk"),     # Weekly for 5 years
+    "10Y": ("10y", "1wk"),   # Weekly for 10 years (downsampled to monthly for display)
 }
 
 
@@ -41,7 +42,7 @@ def fetch_chart_data(db: Session, ticker: str, period: str = "1D") -> Optional[d
     Args:
         db: Database session
         ticker: Stock ticker (our database ticker)
-        period: Time period (1D, 5D, 1M, 3M, 6M, 1Y, 5Y)
+        period: Time period (1D, 5D, 1M, 3M, 6M, 1Y, 5Y, 10Y)
 
     Returns:
         Dict with ticker, period, interval, and data points

@@ -7,7 +7,7 @@ import type { SlotCounterRef } from 'react-slot-counter'
 import NavLinkFalling from '../components/NavLinkFalling'
 import Confetti from 'react-confetti-boom'
 import './StockDetail.css'
-const PERIODS = ['1D', '1W', '1M', '3M', '1Y', '5Y'] as const
+const PERIODS = ['1D', '1W', '1M', '3M', '1Y', '5Y', '10Y'] as const
 type Period = typeof PERIODS[number]
 // Map our periods to API periods
 const PERIOD_MAP: Record<Period, string> = {
@@ -17,6 +17,7 @@ const PERIOD_MAP: Record<Period, string> = {
   '3M': '3M',
   '1Y': '1Y',
   '5Y': '5Y',
+  '10Y': '10Y',
 }
 interface HoverData {
   index: number
@@ -277,6 +278,34 @@ function StockDetail() {
       }
       
       return dailyPoints
+    }
+    
+    if (period === '10Y') {
+      // Keep only the last data point of each month (weekly data downsampled to monthly)
+      const monthlyPoints: ChartResponse['data_points'] = []
+      
+      for (let i = 0; i < dataPoints.length; i++) {
+        const point = dataPoints[i]
+        const date = new Date(point.timestamp)
+        const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        
+        // Get the last point's month for comparison
+        const lastPointMonth = monthlyPoints.length > 0 
+          ? (() => {
+              const lastDate = new Date(monthlyPoints[monthlyPoints.length - 1].timestamp)
+              return `${lastDate.getFullYear()}-${String(lastDate.getMonth() + 1).padStart(2, '0')}`
+            })()
+          : null
+        
+        // Always update to latest point of the month
+        if (monthlyPoints.length === 0 || lastPointMonth !== month) {
+          monthlyPoints.push(point)
+        } else {
+          monthlyPoints[monthlyPoints.length - 1] = point
+        }
+      }
+      
+      return monthlyPoints
     }
     
     return dataPoints
