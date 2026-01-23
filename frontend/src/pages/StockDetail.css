@@ -230,14 +230,13 @@
   position: absolute;
   top: 100%;
   left: 0;
-  right: 0;
+  width: 100%;
   background-color: rgb(24, 23, 22);
   border: 1px solid #3a3a3a;
   border-top: none;
   border-radius: 0 0 16px 16px;
   padding: 12px 0 16px 0;
   z-index: 1000;
-  min-width: 350px;
   animation: slideDown 0.2s ease-out both;
   transform-origin: top;
 }
@@ -279,6 +278,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .stock-detail-page .result-logo {
@@ -324,6 +326,11 @@
 .stock-detail-page .result-name {
   color: #666666;
   font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
 }
 
 .stock-detail-page .result-star {
