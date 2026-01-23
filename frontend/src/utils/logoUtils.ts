@@ -1,5 +1,3 @@
-import type { Stock } from '../types/stock'
-
 // Map exchange names to Logo.dev shortcodes
 const EXCHANGE_SHORTCODES: Record<string, string> = {
   'TSX': '.TO',
