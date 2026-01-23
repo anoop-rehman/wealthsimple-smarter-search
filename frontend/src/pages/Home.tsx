@@ -33,7 +33,7 @@ const EXAMPLE_PROMPTS = [
   'Healthcare stocks with earnings calls in the next week',
   'Top gaining stocks today',
   'Tech stocks under $100',
-  'Energy sector by market cap',
+  'Energy companies by market cap',
   'Big five Canadian banks',
 ]
 
