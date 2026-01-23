@@ -4,6 +4,8 @@ This template provides a minimal setup to get React working in Vite with HMR and
 
 ## Environment Variables
 
+### Local Development
+
 To enable company logos from Logo.dev, create a `.env` file in the frontend directory with:
 
 ```
@@ -11,6 +13,18 @@ VITE_LOGO_DEV_TOKEN=your_logo_dev_api_key_here
 ```
 
 Get your API key from [Logo.dev](https://logo.dev). If the API key is not set, the app will fall back to colored placeholder logos.
+
+### Production Deployment (GitHub Pages)
+
+For production builds, add `VITE_LOGO_DEV_TOKEN` as a GitHub secret:
+
+1. Go to your repository settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Name: `VITE_LOGO_DEV_TOKEN`
+4. Value: Your Logo.dev API key
+5. Click "Add secret"
+
+The GitHub Actions workflow will automatically use this secret during the build process.
 
 Currently, two official plugins are available:
 
