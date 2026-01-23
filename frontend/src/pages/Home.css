@@ -310,7 +310,9 @@
 
 /* Search Container */
 .search-container {
-  width: 600px;
+  max-width: 600px;
+  width: 100%;
+  padding: 0 20px;
   animation: scaleIn 0.5s ease-out 0.5s both;
 }
 
@@ -496,4 +498,83 @@
   border-color: #4a4a4a;
   color: #ffffff;
   transform: scale(1.02) translateY(-2px);
+}
+
+/* Responsive Design */
+/* Tablet adjustments */
+@media (max-width: 900px) {
+  .header {
+    padding: 16px 24px;
+  }
+
+  .header-left {
+    gap: 24px;
+  }
+
+  .search-container {
+    padding: 0 16px;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .header {
+    padding: 12px 16px;
+  }
+
+  .header-left {
+    gap: 16px;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .hero-title {
+    margin-bottom: 24px;
+  }
+
+  .hero-intro {
+    font-size: 14px;
+  }
+
+  .hero-smarter {
+    font-size: 32px;
+  }
+
+  .hero-search {
+    font-size: 32px;
+  }
+
+  .search-container {
+    padding: 0 16px;
+  }
+
+  .home-search-bar {
+    min-width: 0;
+    padding: 12px 16px;
+  }
+
+  .home-search-input {
+    font-size: 16px;
+  }
+
+  .prompt-examples {
+    padding: 0 16px;
+    gap: 8px;
+  }
+
+  .prompt-example {
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+
+  .dropdown-section {
+    padding: 0 16px;
+  }
+
+  .dropdown-result-item:hover {
+    margin: 0 -16px;
+    padding: 12px 16px;
+  }
 }
