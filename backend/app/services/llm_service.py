@@ -53,16 +53,16 @@ Rules:
    - "next week" = earnings_call_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
    - "next month" = earnings_call_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
    - "this week" = earnings_call_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
-4. For market cap queries:
+5. For market cap queries:
    - "large cap" = market_cap_numeric >= 10000000000 (10 billion)
    - "mid cap" = market_cap_numeric BETWEEN 2000000000 AND 10000000000
    - "small cap" = market_cap_numeric < 2000000000
-5. For price movement:
+6. For price movement:
    - "up today" or "gainers" = day_change_percent > 0
    - "down today" or "losers" = day_change_percent < 0
-6. Return ONLY the raw SQL query, no explanations, no markdown, no code blocks
-7. Always use case-insensitive matching for sector and stock names (use ILIKE)
-8. If the query is unclear or cannot be converted to SQL, return: SELECT * FROM stocks LIMIT {limit}
+7. Return ONLY the raw SQL query, no explanations, no markdown, no code blocks
+8. Always use case-insensitive matching for sector and stock names (use ILIKE)
+9. If the query is unclear or cannot be converted to SQL, return: SELECT * FROM stocks WHERE 1=0 LIMIT {limit}
 
 Examples:
 User: "Healthcare stocks with earnings calls in the next week"
@@ -86,7 +86,7 @@ def generate_sql_from_query(natural_language_query: str, limit: int = 50) -> str
     """Convert a natural language query to SQL using Claude."""
     if not client:
         # Fallback if no API key
-        return f"SELECT * FROM stocks LIMIT {limit}"
+        return f"SELECT * FROM stocks WHERE 1=0 LIMIT {limit}"
 
     try:
         message = client.messages.create(
@@ -113,8 +113,8 @@ def generate_sql_from_query(natural_language_query: str, limit: int = 50) -> str
                 sql = sql[:-1]
             return sql
 
-        return f"SELECT * FROM stocks LIMIT {limit}"
+        return f"SELECT * FROM stocks WHERE 1=0 LIMIT {limit}"
 
     except Exception as e:
         print(f"Error generating SQL with Claude: {e}")
-        return f"SELECT * FROM stocks LIMIT {limit}"
+        return f"SELECT * FROM stocks WHERE 1=0 LIMIT {limit}"
