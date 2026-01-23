@@ -30,11 +30,11 @@ function useDebounce<T>(value: T, delay: number): T {
 
 
 const EXAMPLE_PROMPTS = [
-  'Healthcare stocks with upcoming earnings',
-  'Tech stocks under $100',
+  'Healthcare stocks with earnings calls in the next week',
   'Top gaining stocks today',
-  'Energy sector with high volume',
-  'Canadian bank stocks',
+  'Tech stocks under $100',
+  'Energy sector by market cap',
+  'Big five Canadian banks',
 ]
 
 function Home() {
