@@ -62,23 +62,29 @@ Rules:
    - "down today" or "losers" = day_change_percent < 0
 7. Return ONLY the raw SQL query, no explanations, no markdown, no code blocks
 8. Always use case-insensitive matching for sector and stock names (use ILIKE)
-9. If the query is unclear or cannot be converted to SQL, return: SELECT * FROM stocks WHERE 1=0 LIMIT {limit}
+9. Always sort the results by the most relevant column for the query. Can be DESC or ASC, based on what would be most relevant to the query.
+   - If the query asks you to sort by a specific column, then that is definitely the most relevant column for the sorting. For example, if the query is "Tech sector by market cap", you should sort by market_cap_numeric DESC.
+   - If the query asks you to filter by some continuous column, then that is probably the most relevant column for the sorting. For example, if the query is "Healthcare stocks with earnings calls in the next week", you should sort by earnings_call_date ASC. ASC instead of DESC, because the query implies that the user's information need is stocks that have earnings calls soon.
+   - If the query doesn't ask you to sort or filter by a specific column, make an educated guess as to which column would be the most helpful to sort by for the user's information need. For example, if the query asks you for "Top gaining stocks today", you should sort by day_change_percent DESC.
+   - If in doubt, and you have you idea which column to sort by, it's usually a safe bet to sort by day_change_percent DESC.
+10. Supplement with your world knowledge and common sense whereever required. For example, if the query is "big 5 canadian banks", and you have the world knowledge of which 5 banks are considered to be Canada's Big Five Banks, then you can filter for those tickers directly. 
+11. If the query is unclear or cannot be converted to SQL, return: SELECT * FROM stocks WHERE 1=0 LIMIT {limit}
 
 Examples:
 User: "Healthcare stocks with earnings calls in the next week"
-SQL: SELECT * FROM stocks WHERE sector ILIKE '%Healthcare%' AND earnings_call_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days' LIMIT 50
+SQL: SELECT * FROM stocks WHERE sector ILIKE '%Healthcare%' AND earnings_call_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days' ORDER BY earnings_call_date ASC LIMIT 50 
 
 User: "Large cap technology stocks"
-SQL: SELECT * FROM stocks WHERE sector ILIKE '%Technology%' AND market_cap_numeric >= 10000000000 LIMIT 50
+SQL: SELECT * FROM stocks WHERE sector ILIKE '%Technology%' AND market_cap_numeric >= 10000000000 ORDER BY market_cap_numeric DESC LIMIT 50
 
 User: "Show me the top gainers today"
 SQL: SELECT * FROM stocks WHERE day_change_percent > 0 ORDER BY day_change_percent DESC LIMIT 50
 
 User: "Stocks under $50"
-SQL: SELECT * FROM stocks WHERE current_price < 50 LIMIT 50
+SQL: SELECT * FROM stocks WHERE current_price < 50 ORDER BY current_price ASC LIMIT 50
 
 User: "all stocks" or "show all stocks"
-SQL: SELECT * FROM stocks LIMIT 500
+SQL: SELECT * FROM stocks ORDER BY ticker ASC LIMIT 500
 """
 
 
