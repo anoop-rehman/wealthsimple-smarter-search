@@ -1,10 +1,12 @@
-# Wealthsimple AI Command Center
+# Wealthsimple Smarter Search
 
-A full-stack stock market application with AI-powered natural language search capabilities. Search for stocks using plain English queries, view detailed stock information, and track your favorite stocks with real-time data updates.
+Search for stocks in plain English.
+
+Try it out: https://anoop-rehman.github.io/wealthsimple-smarter-search
 
 ## 🚀 Features
 
-- **AI-Powered Natural Language Search**: Query stocks using plain English (e.g., "Healthcare stocks with earnings calls in the next week", "Large cap technology stocks")
+- **AI-Powered Natural Language Search**: Query stocks using natural language (e.g., "Healthcare stocks with earnings calls in the next week", "Large cap technology stocks")
 - **Relatively Up-To-Date Stock Data**: Automatic updates every 15 minutes from Yahoo Finance
 - **Stock Detail Pages**: Comprehensive stock information including price, market cap, P/E ratio, earnings dates, and more
 - **Starred Stocks**: Save and track your favorite stocks
