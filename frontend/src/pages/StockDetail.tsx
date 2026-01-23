@@ -75,7 +75,7 @@ function getCurrency(exchange?: string): string {
 }
 function formatTimestamp(timestamp: string, period: Period): string {
   const date = new Date(timestamp)
-  if (period === '1D' || period === '1W') {
+  if (period === '1D' || period === '1W' || period === '1M') {
     return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
