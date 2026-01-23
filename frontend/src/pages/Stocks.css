@@ -590,7 +590,8 @@
   }
 
   .main-content {
-    padding: 24px 16px;
+    padding: 24px 8px;
+    overflow-x: hidden;
   }
 
   /* Hide columns: Earnings call (2), Market Cap (3), 1D chart (6) */
@@ -601,5 +602,83 @@
   .stock-row td:nth-child(3),
   .stock-row td:nth-child(6) {
     display: none;
+  }
+
+  /* Ensure table fits on screen with fixed layout */
+  .stock-table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .table-header th {
+    padding: 10px 4px;
+    font-size: 11px;
+  }
+
+  .table-header th:first-child {
+    width: 45%;
+  }
+
+  .table-header th:nth-child(4) {
+    width: 30%;
+  }
+
+  .table-header th:nth-child(5) {
+    width: 25%;
+  }
+
+  .stock-row td {
+    padding: 12px 4px;
+    font-size: 13px;
+  }
+
+  /* Shrink Positions column on mobile */
+  .stock-row td:first-child {
+    padding: 12px 4px;
+    width: 45%;
+    overflow: hidden;
+  }
+
+  .position-cell {
+    gap: 6px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .stock-logo {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .stock-logo.stock-logo-small {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ticker {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex-shrink: 0;
+    max-width: 50px;
+  }
+
+  .company-name {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .stock-row td:nth-child(4),
+  .stock-row td:nth-child(5) {
+    font-size: 12px;
+    padding: 12px 4px;
+    text-align: center;
   }
 }
