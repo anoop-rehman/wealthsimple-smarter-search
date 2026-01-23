@@ -44,6 +44,7 @@
   justify-content: space-between;
   padding: 16px 40px;
   border-bottom: none;
+  position: relative;
 }
 
 .header-left {
@@ -62,6 +63,29 @@
 
 .logo svg {
   display: block;
+}
+
+/* Logo animation - starts centered, animates to left */
+@keyframes logoMoveToLeft {
+  0% {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  99% {
+    position: absolute;
+    left: 40px;
+    transform: translateX(0);
+  }
+  100% {
+    position: relative;
+    left: 0;
+    transform: translateX(0);
+  }
+}
+
+.logo-animate {
+  animation: logoMoveToLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .nav-links {
@@ -560,4 +584,28 @@
 
 .view-all-link .arrow {
   margin-left: 4px;
+}
+
+/* Responsive Design */
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .header {
+    padding: 12px 16px;
+  }
+
+  .header-left {
+    gap: 16px;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .user-icon-button {
+    display: none;
+  }
+
+  .main-content {
+    padding: 24px 16px;
+  }
 }
