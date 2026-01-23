@@ -6,6 +6,7 @@ import SlotCounter from 'react-slot-counter'
 import type { SlotCounterRef } from 'react-slot-counter'
 import NavLinkFalling from '../components/NavLinkFalling'
 import StockLogo from '../components/StockLogo'
+import StarButton from '../components/StarButton'
 import Confetti from 'react-confetti-boom'
 import './StockDetail.css'
 const PERIODS = ['1D', '1W', '1M', '3M', '1Y', '5Y', '10Y'] as const
@@ -750,7 +751,7 @@ function StockDetail() {
                           <span className="result-ticker">{result.ticker}</span>
                           <span className="result-name">{result.stock_name}</span>
                         </div>
-                        <span className="result-star">☆</span>
+                        <StarButton ticker={result.ticker} className="result-star" />
                       </div>
                     ))}
                     {!navIsLoading && navResults.length === 0 && (
@@ -837,7 +838,7 @@ function StockDetail() {
           <div className="stock-title">
             <div className="ticker-row">
               <span className="ticker-symbol">{stock.ticker}</span>
-              <span className="star-icon">&#9734;</span>
+              <StarButton ticker={stock.ticker} className="star-icon" />
             </div>
             <span className="company-name">{stock.stock_name}</span>
           </div>

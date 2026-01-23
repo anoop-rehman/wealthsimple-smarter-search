@@ -4,6 +4,7 @@ import { searchStocks, getChartsBatch } from '../services/api'
 import type { Stock } from '../types/stock'
 import NavLinkFalling from '../components/NavLinkFalling'
 import StockLogo from '../components/StockLogo'
+import StarButton from '../components/StarButton'
 import Confetti from 'react-confetti-boom'
 import SlotCounter from 'react-slot-counter'
 import type { SlotCounterRef } from 'react-slot-counter'
@@ -307,7 +308,7 @@ function Stocks() {
                           <span className="result-ticker">{stock.ticker}</span>
                           <span className="result-name">{stock.stock_name}</span>
                         </div>
-                        <span className="result-star">☆</span>
+                        <StarButton ticker={stock.ticker} className="result-star" />
                       </div>
                     ))}
                     {!navIsLoading && navResults.length === 0 && (
