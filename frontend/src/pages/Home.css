@@ -424,18 +424,19 @@
 }
 
 .result-star {
-  color: #444444;
+  color: #888 !important;
   font-size: 20px;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.2s ease, transform 0.1s ease;
 }
 
 .result-star:hover {
-  color: #888888;
+  color: #ffd700 !important;
+  transform: scale(1.1);
 }
 
 .result-star.starred {
-  color: #ffffff;
+  color: #ffd700 !important;
 }
 
 /* Dropdown Footer */
