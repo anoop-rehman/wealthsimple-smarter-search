@@ -67,7 +67,7 @@
 
 .nav-links {
   display: flex;
-  gap: 24px;
+  gap: 0;
 }
 
 .nav-link {
@@ -75,15 +75,31 @@
   text-decoration: none;
   font-size: 15px;
   font-weight: 500;
-  transition: color 0.2s;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s;
 }
 
 .nav-link:hover {
   color: #ffffff;
+  background-color: #3a3a3a;
 }
 
 .nav-link.active {
   color: #ffffff;
+  background-color: transparent;
+  border-radius: 0;
+  position: relative;
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 16px;
+  right: 16px;
+  height: 2px;
+  background-color: #ffffff;
 }
 
 .header-right {

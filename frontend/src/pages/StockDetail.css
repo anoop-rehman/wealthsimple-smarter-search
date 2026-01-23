@@ -79,7 +79,7 @@
 
 .stock-detail-page .nav-links {
   display: flex;
-  gap: 24px;
+  gap: 0;
 }
 
 .stock-detail-page .nav-link {
@@ -87,15 +87,31 @@
   text-decoration: none;
   font-size: 15px;
   font-weight: 500;
-  transition: color 0.2s;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s;
 }
 
 .stock-detail-page .nav-link:hover {
   color: #ffffff;
+  background-color: #3a3a3a;
 }
 
 .stock-detail-page .nav-link.active {
   color: #ffffff;
+  background-color: transparent;
+  border-radius: 0;
+  position: relative;
+}
+
+.stock-detail-page .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 16px;
+  right: 16px;
+  height: 2px;
+  background-color: #ffffff;
 }
 
 .stock-detail-page .header-right {
