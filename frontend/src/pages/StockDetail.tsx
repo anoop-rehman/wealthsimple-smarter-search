@@ -845,8 +845,8 @@ function StockDetail() {
                 direction="top-down"
                 autoAnimationStart={false}
                 animateUnchanged
-                duration={1.5}
-                speed={20}
+                duration={1.0}
+                speed={1.0}
                 onAnimationEnd={() => {
                   setIsUserIconAnimating(false)
                 }}
