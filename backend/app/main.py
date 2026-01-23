@@ -28,14 +28,6 @@ async def lifespan(app: FastAPI):
     # Startup: start the scheduler
     start_scheduler(interval_minutes=15)
     
-    # Startup: warm the query cache with precomputed SQL (instant, no LLM calls)
-    try:
-        from app.services.cache_service import warm_cache
-        result = warm_cache()
-        print(f"Cache warmed: {result['warmed']}/{result['total_prompts']} queries cached")
-    except Exception as e:
-        print(f"Warning: Could not warm cache: {e}")
-    
     yield
     # Shutdown: stop the scheduler
     stop_scheduler()
