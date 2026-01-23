@@ -75,7 +75,7 @@ function getCurrency(exchange?: string): string {
 }
 function formatTimestamp(timestamp: string, period: Period): string {
   const date = new Date(timestamp)
-  if (period === '1D' || period === '1W' || period === '1M') {
+  if (period === '1D' || period === '1W' || period === '1M' || period === '3M') {
     return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -280,6 +280,30 @@ function StockDetail() {
       return dailyPoints
     }
     
+    if (period === '3M') {
+      // Keep only the last data point of each day for display (daily resolution)
+      const dailyPoints: ChartResponse['data_points'] = []
+      
+      for (let i = 0; i < dataPoints.length; i++) {
+        const point = dataPoints[i]
+        const day = point.timestamp.split('T')[0]
+        
+        // Get the last point's day for comparison
+        const lastPointDay = dailyPoints.length > 0 
+          ? dailyPoints[dailyPoints.length - 1].timestamp.split('T')[0]
+          : null
+        
+        // Always update to latest point of the day (close price)
+        if (dailyPoints.length === 0 || lastPointDay !== day) {
+          dailyPoints.push(point)
+        } else {
+          dailyPoints[dailyPoints.length - 1] = point
+        }
+      }
+      
+      return dailyPoints
+    }
+    
     if (period === '10Y') {
       // Keep only the last data point of each month (weekly data downsampled to monthly)
       const monthlyPoints: ChartResponse['data_points'] = []
@@ -311,14 +335,47 @@ function StockDetail() {
     return dataPoints
   }, [])
 
+  // Filter data to only open and close points per day (for 3M hover)
+  const filterOpenClosePoints = useCallback((dataPoints: ChartResponse['data_points']) => {
+    const openClosePoints: ChartResponse['data_points'] = []
+    const dayGroups: Record<string, ChartResponse['data_points']> = {}
+    
+    // Group points by day
+    for (const point of dataPoints) {
+      const day = point.timestamp.split('T')[0]
+      if (!dayGroups[day]) {
+        dayGroups[day] = []
+      }
+      dayGroups[day].push(point)
+    }
+    
+    // For each day, keep first (open) and last (close) point
+    for (const day of Object.keys(dayGroups).sort()) {
+      const dayPoints = dayGroups[day]
+      if (dayPoints.length > 0) {
+        openClosePoints.push(dayPoints[0]) // Open
+        if (dayPoints.length > 1) {
+          openClosePoints.push(dayPoints[dayPoints.length - 1]) // Close
+        }
+      }
+    }
+    
+    return openClosePoints
+  }, [])
+
   // Generate SVG path and points for chart
   const generateChartData = useCallback(() => {
     if (!chartData?.data_points || chartData.data_points.length < 2) {
       return { path: '', isPositive: true, openY: 50, points: [], min: 0, max: 0, range: 1 }
     }
     
+    // For 3M, use only open/close points for hover; otherwise use all data
+    const hoverDataPoints = selectedPeriod === '3M' 
+      ? filterOpenClosePoints(chartData.data_points)
+      : chartData.data_points
+    
     // Full data for hover interactions
-    const allPrices = chartData.data_points.map(p => p.price)
+    const allPrices = hoverDataPoints.map(p => p.price)
     const width = 100
     const height = 100
     const padding = 5
@@ -326,7 +383,7 @@ function StockDetail() {
     const max = Math.max(...allPrices)
     const range = max - min || 1
     
-    // Full points array for hover (maps to all data points)
+    // Full points array for hover (maps to hover data points)
     const points = allPrices.map((price, i) => {
       const x = (i / (allPrices.length - 1)) * width
       const y = padding + ((max - price) / range) * (height - padding * 2)
@@ -355,20 +412,28 @@ function StockDetail() {
     const areaPathD = pathD + ` L${width},${height} L0,${height} Z`
     
     return { path: pathD, areaPath: areaPathD, isPositive, openY, points, min, max, range }
-  }, [chartData, selectedPeriod, generateSmoothPath, downsampleData])
+  }, [chartData, selectedPeriod, generateSmoothPath, downsampleData, filterOpenClosePoints])
   const { path: chartPath, areaPath: chartAreaPath, isPositive, openY, points: chartPoints } = generateChartData()
   // Handle mouse move on chart
   const handleChartMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!chartRef.current || !chartData?.data_points || chartData.data_points.length < 2) return
+    
+    // For 3M, use only open/close points for hover; otherwise use all data
+    const hoverDataPoints = selectedPeriod === '3M' 
+      ? filterOpenClosePoints(chartData.data_points)
+      : chartData.data_points
+    
+    if (hoverDataPoints.length < 2) return
+    
     const rect = chartRef.current.getBoundingClientRect()
     const x = e.clientX - rect.left
     const relativeX = x / rect.width
     // Find the closest data point
     const index = Math.min(
-      Math.max(0, Math.round(relativeX * (chartData.data_points.length - 1))),
-      chartData.data_points.length - 1
+      Math.max(0, Math.round(relativeX * (hoverDataPoints.length - 1))),
+      hoverDataPoints.length - 1
     )
-    const dataPoint = chartData.data_points[index]
+    const dataPoint = hoverDataPoints[index]
     const point = chartPoints[index]
     if (dataPoint && point) {
       setHoverData({
@@ -383,7 +448,7 @@ function StockDetail() {
         lastHoveredPriceRef.current = dataPoint.price
       }
     }
-  }, [chartData, chartPoints])
+  }, [chartData, chartPoints, selectedPeriod, filterOpenClosePoints])
   const handleChartMouseLeave = useCallback(() => {
     const lastPrice = lastHoveredPriceRef.current
     // Trigger animation if we have a last hovered price and it's different from current
@@ -416,14 +481,22 @@ function StockDetail() {
   const handleChartMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault()
     if (!chartRef.current || !chartData?.data_points || chartData.data_points.length < 2) return
+    
+    // For 3M, use only open/close points for hover; otherwise use all data
+    const hoverDataPoints = selectedPeriod === '3M' 
+      ? filterOpenClosePoints(chartData.data_points)
+      : chartData.data_points
+    
+    if (hoverDataPoints.length < 2) return
+    
     const rect = chartRef.current.getBoundingClientRect()
     const x = e.clientX - rect.left
     const relativeX = x / rect.width
     const index = Math.min(
-      Math.max(0, Math.round(relativeX * (chartData.data_points.length - 1))),
-      chartData.data_points.length - 1
+      Math.max(0, Math.round(relativeX * (hoverDataPoints.length - 1))),
+      hoverDataPoints.length - 1
     )
-    const dataPoint = chartData.data_points[index]
+    const dataPoint = hoverDataPoints[index]
     const point = chartPoints[index]
     if (dataPoint && point) {
       setIsDragging(true)
@@ -435,7 +508,7 @@ function StockDetail() {
         y: point.y
       })
     }
-  }, [chartData, chartPoints])
+  }, [chartData, chartPoints, selectedPeriod, filterOpenClosePoints])
   // Global mouseup listener - clear drag state on release (selection disappears)
   useEffect(() => {
     if (!isDragging) return

@@ -12,7 +12,7 @@ PERIOD_CONFIG = {
     "1D": ("1d", "5m"),      # 5-minute intervals for 1 day
     "5D": ("5d", "15m"),     # 15-minute intervals for 5 days
     "1M": ("1mo", "1h"),     # 1-hour intervals for 1 month
-    "3M": ("3mo", "1d"),     # Daily for 3 months
+    "3M": ("3mo", "1h"),     # Hourly for 3 months (downsampled to daily for display)
     "6M": ("6mo", "1d"),     # Daily for 6 months
     "1Y": ("1y", "1d"),      # Daily for 1 year
     "5Y": ("5y", "1wk"),     # Weekly for 5 years
