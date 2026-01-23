@@ -90,10 +90,6 @@
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Homepage logo - left aligned on desktop, will be centered on mobile */
-.logo-home {
-  /* Normal positioning on desktop */
-}
 
 .nav-links {
   display: flex;
@@ -531,29 +527,51 @@
   }
 
   .header-left {
-    gap: 16px;
+    gap: 12px;
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
   }
 
-  /* Show Home navlink only on Home page mobile */
+  /* Make navlinks horizontally scrollable on Home page mobile */
   .home .nav-links {
     display: flex !important;
     gap: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
   }
 
-  /* Show Home navlink, hide all others on mobile */
-  .home .nav-links a:first-child {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .home .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Show all navlinks, make them scrollable */
+  .home .nav-links a {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
-  }
-
-  .home .nav-links a:not(:first-child) {
-    display: none !important;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 
   .header-right {
     flex: 0;
+    flex-shrink: 0;
+  }
+
+  /* Ensure navlinks container leaves room for gift icon */
+  .home .header-left {
+    max-width: calc(100% - 60px); /* Leave space for gift icon */
+  }
+
+  .home .nav-link {
+    font-size: 14px;
+    padding: 8px 12px;
   }
 
   .user-icon-button {
