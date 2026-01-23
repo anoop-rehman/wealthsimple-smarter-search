@@ -127,8 +127,8 @@ function Stocks() {
     </svg>
   )
   
-  // Dummy characters for slot animation (same icon repeated)
-  const userIconDummyChars = Array(10).fill(null).map(() => userIconSvg)
+  // Dummy characters for slot animation (same icon repeated many times for continuous spin)
+  const userIconDummyChars = Array(30).fill(null).map(() => userIconSvg)
 
   // Focus search on "/" key press
   useEffect(() => {
@@ -395,10 +395,11 @@ function Stocks() {
                 startValue={[userIconSvg]}
                 value={[userIconSvg]}
                 dummyCharacters={userIconDummyChars}
-                sequentialAnimationMode
-                direction="bottom-up"
+                direction="top-down"
                 autoAnimationStart={false}
                 animateUnchanged
+                duration={1.5}
+                speed={20}
                 onAnimationEnd={() => {
                   setIsUserIconAnimating(false)
                 }}
