@@ -145,6 +145,7 @@ function Home() {
           <div className="logo">W</div>
           <nav className="nav-links">
             <NavLinkFalling text="Home" href="/" active={true} onClick={(e) => { e.preventDefault(); navigate('/'); }} />
+            <NavLinkFalling text="Household" href="#" />
             <NavLinkFalling text="Move" href="#" />
             <NavLinkFalling text="Activity" href="#" />
             <NavLinkFalling text="Tax" href="#" />

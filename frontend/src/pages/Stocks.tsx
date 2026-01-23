@@ -248,6 +248,7 @@ function Stocks() {
           <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>W</div>
           <nav className="nav-links">
             <NavLinkFalling text="Home" href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} />
+            <NavLinkFalling text="Household" href="#" />
             <NavLinkFalling text="Move" href="#" />
             <NavLinkFalling text="Activity" href="#" />
             <NavLinkFalling text="Tax" href="#" />
