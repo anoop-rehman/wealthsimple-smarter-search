@@ -1,4 +1,4 @@
-# Wealthsimple Smarter Search
+# Smarter Search for Wealthsimple
 <img width="1676" height="856" alt="Screenshot 2026-01-23 at 4 24 18 AM" src="https://github.com/user-attachments/assets/9e80042e-235b-45ce-883e-5e3b9096d6d8" />
 
 Search for stocks in plain English.
