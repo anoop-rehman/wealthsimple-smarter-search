@@ -65,28 +65,6 @@
   display: block;
 }
 
-/* Logo animation - starts centered, animates to left */
-@keyframes logoMoveToLeft {
-  0% {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  99% {
-    position: absolute;
-    left: 40px;
-    transform: translateX(0);
-  }
-  100% {
-    position: relative;
-    left: 0;
-    transform: translateX(0);
-  }
-}
-
-.logo-animate {
-  animation: logoMoveToLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
 
 .nav-links {
   display: flex;
@@ -317,6 +295,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .stock-logo {
@@ -395,6 +374,11 @@
 .company-name {
   color: #666666;
   font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .stock-row td:nth-child(2),
@@ -607,5 +591,15 @@
 
   .main-content {
     padding: 24px 16px;
+  }
+
+  /* Hide columns: Earnings call (2), Market Cap (3), 1D chart (6) */
+  .table-header th:nth-child(2),
+  .table-header th:nth-child(3),
+  .table-header th:nth-child(6),
+  .stock-row td:nth-child(2),
+  .stock-row td:nth-child(3),
+  .stock-row td:nth-child(6) {
+    display: none;
   }
 }
