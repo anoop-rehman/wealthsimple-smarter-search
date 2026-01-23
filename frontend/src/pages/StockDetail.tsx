@@ -5,6 +5,7 @@ import type { Stock, ChartResponse } from '../types/stock'
 import SlotCounter from 'react-slot-counter'
 import type { SlotCounterRef } from 'react-slot-counter'
 import NavLinkFalling from '../components/NavLinkFalling'
+import Confetti from 'react-confetti-boom'
 import './StockDetail.css'
 const PERIODS = ['1D', '1W', '1M', '3M', '1Y', '5Y'] as const
 type Period = typeof PERIODS[number]
@@ -120,6 +121,8 @@ function StockDetail() {
   const [navResults, setNavResults] = useState<Stock[]>([])
   const [navIsLoading, setNavIsLoading] = useState(false)
   const [showFullDescription, setShowFullDescription] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [confettiPosition, setConfettiPosition] = useState({ x: 0.5, y: 0.1 })
   // Focus search on "/" key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -520,6 +523,16 @@ function StockDetail() {
   const changeIsPositive = activeSelection ? selectionIsPositive : (displayChangePercent || 0) >= 0
   return (
     <div className="stock-detail-page">
+      {showConfetti && (
+        <Confetti 
+          mode="boom" 
+          particleCount={50}
+          x={confettiPosition.x}
+          y={confettiPosition.y}
+          colors={['#ff577f', '#ff884b', '#ffd384', '#fff9b0', '#ffffff']}
+          effectCount={1}
+        />
+      )}
       {/* Header */}
       <header className="header">
         <div className="header-left">
@@ -609,7 +622,18 @@ function StockDetail() {
               </div>
             )}
           </div>
-          <button className="icon-btn icon-btn-circle">
+          <button 
+            className="icon-btn icon-btn-circle"
+            onClick={(e) => {
+              if (showConfetti) return // Prevent multiple clicks while animation is playing
+              const rect = e.currentTarget.getBoundingClientRect()
+              const x = (rect.left + rect.width / 2) / window.innerWidth
+              const y = (rect.top + rect.height / 2) / window.innerHeight
+              setConfettiPosition({ x, y })
+              setShowConfetti(true)
+              setTimeout(() => setShowConfetti(false), 3000)
+            }}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="8" width="18" height="14" rx="2"/>
               <path d="M12 8V22"/>

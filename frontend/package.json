@@ -16,6 +16,7 @@
     "@types/three": "^0.182.0",
     "matter-js": "^0.20.0",
     "react": "^19.2.0",
+    "react-confetti-boom": "^2.0.1",
     "react-dom": "^19.2.0",
     "react-router-dom": "^6.30.3",
     "react-slot-counter": "^3.3.2",

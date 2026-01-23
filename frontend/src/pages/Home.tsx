@@ -4,6 +4,7 @@ import { searchStocks } from '../services/api'
 import type { Stock } from '../types/stock'
 import Beams from '../components/Beams'
 import NavLinkFalling from '../components/NavLinkFalling'
+import Confetti from 'react-confetti-boom'
 import './Home.css'
 
 // Debounce hook
@@ -59,6 +60,8 @@ function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [results, setResults] = useState<Stock[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [confettiPosition, setConfettiPosition] = useState({ x: 0.5, y: 0.1 })
 
   const debouncedQuery = useDebounce(searchQuery, 300)
 
@@ -126,6 +129,16 @@ function Home() {
 
   return (
     <div className="home">
+      {showConfetti && (
+        <Confetti 
+          mode="boom" 
+          particleCount={50}
+          x={confettiPosition.x}
+          y={confettiPosition.y}
+          colors={['#ff577f', '#ff884b', '#ffd384', '#fff9b0', '#ffffff']}
+          effectCount={1}
+        />
+      )}
       {/* Animated background beams */}
       <div className="beams-background">
         <Beams
@@ -157,7 +170,18 @@ function Home() {
           </nav>
         </div>
         <div className="header-right">
-          <button className="icon-btn icon-btn-circle">
+          <button 
+            className="icon-btn icon-btn-circle"
+            onClick={(e) => {
+              if (showConfetti) return // Prevent multiple clicks while animation is playing
+              const rect = e.currentTarget.getBoundingClientRect()
+              const x = (rect.left + rect.width / 2) / window.innerWidth
+              const y = (rect.top + rect.height / 2) / window.innerHeight
+              setConfettiPosition({ x, y })
+              setShowConfetti(true)
+              setTimeout(() => setShowConfetti(false), 3000)
+            }}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="8" width="18" height="14" rx="2"/>
               <path d="M12 8V22"/>
